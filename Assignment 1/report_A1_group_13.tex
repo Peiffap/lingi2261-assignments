@@ -1,0 +1,47 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[top=2cm, bottom=2cm,left=2cm,right=2cm]{geometry}
+\usepackage{color}
+
+%opening
+\title{LINGI2261 - Assignment 1 of group 13}
+\author{Martin Braquet \and Gilles Peiffer}
+
+\begin{document}
+
+\maketitle
+
+\section{Python AIMA}
+
+\begin{enumerate}
+ \item The main class, Problem, is a very general class. We thus have to subclass it in order to adapt it for our specific problems. The methods requiring a specific implementation are detailed below.
+ 
+ \begin{itemize}
+  \item \_\_init\_\_: A goal state can be defined, if it is unique. Other arguments can also be added in the class.
+  \item successor: It returns a sequence of (action, state) pairs reachable from a specific state.
+  \item goal\_test: It determines when the search algorithm must stop.
+  \item path\_cost: It is used to assess the cost of each path, determining the optimality of the solution.
+ \end{itemize}
+ After that, we need to create instances of our new subclass and solve them with the interesting search functions available in search.py.
+ \item The tree\_search method tries to find a solution by taking as arguments the problem to solve and an empty frontier, for which the fundamental difference is the type of this list. Indeed, breadth\_first\_graph\_search uses a LIFO queue to store the nodes of the frontier in order to search the shallowest nodes first, while the depth\_first\_graph\_search uses a FIFO queue in order to search the deepest nodes first.
+ \item There are two involved methods detailed hereinafter. node.expand(problem) is a method from the Node class that outputs a list of the successors of the node given as argument. fringe.extend(node.expand(problem)) is a method from the List class that appends the list of nodes onto the list of nodes in the frontier (fringe).
+ \item The graph\_search method keeps a tracking of all the visited states (as well as the states in the frontier). Although it requires more memory to store these states, this method has the advantage to drop the new nodes containing a state that is already visited. Considering the main advantage, the graph search makes the depth-first search complete for finite state spaces and bounds the space and time complexities by the size of the state space, which is not the case for the tree-search (it is not complete and the complexities are bound by the tree size).
+ \item % Don't know yet, need to run the code
+ \item % :'(
+\end{enumerate}
+
+
+\section{The Knight’s tour Problem}
+
+\begin{enumerate}
+ \item 
+ \item 
+ \item 
+ \item 
+ \item 
+ \item 
+\end{enumerate}
+
+
+\end{document}
+
