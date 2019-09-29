@@ -1,2 +1,4 @@
-*.pdf
+*13.pdf
 *.DS_Store
+*.pygstyle
+*.pygtex
