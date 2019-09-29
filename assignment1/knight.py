@@ -52,7 +52,7 @@ class State:
 ##############################
 #Use this block to test your code in local
 # Comment it and uncomment the next one if you want to submit your code on INGInious
-with open('instances.txt') as f:
+with open('instancesFile') as f:
     instances = f.read().splitlines()
 
 for instance in instances:
