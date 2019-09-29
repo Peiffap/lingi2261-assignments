@@ -1,0 +1,58 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[top=2cm, bottom=2cm,left=2cm,right=2cm]{geometry}
+\usepackage{color}
+\usepackage{minted}
+
+\newcommand{\py}[1]{\mintinline{python}{#1}}
+
+%opening
+\title{LINGI2261 -- Assignment 1 of group 13}
+\author{Martin Braquet \and Gilles Peiffer}
+
+\begin{document}
+
+\maketitle
+
+\section{Python AIMA}
+
+\begin{enumerate}
+ \item The main class, \py{Problem}, is a very general class. We thus have to subclass it in order to adapt it for our specific problems. The methods requiring a specific implementation are detailed below:
+ 
+ \begin{itemize}
+  \item \py{__init__} allows the user to define a goal state, if it is unique.
+  Other arguments can also be added in the class.
+  \item \py{successor} returns a sequence of (action, state) pairs reachable from a specific state.
+  \item \py{goal_test} determines when the search algorithm must stop.
+  \item \py{path_cost} is used to assess the cost of each path, determining the optimality of the solution.
+ \end{itemize}
+ After that, we need to create instances of our new subclass and solve them with the interesting search functions available in \texttt{search.py}.
+ \item The \py{tree_search} method tries to find a solution by taking as arguments the problem to solve and an empty frontier, for which the fundamental difference is the type of this list.
+ Indeed, \py{breadth_first_graph_search} uses a LIFO queue to store the nodes of the frontier in order to search the shallowest nodes first, while the \py{depth_first_graph_search} uses a FIFO queue in order to search the deepest nodes first.
+ \item There are two involved methods detailed hereinafter.
+ \begin{itemize}
+ 	\item \py{node.expand(problem)} is a method from the \py{Node} class that outputs a list of the successors of the node given as argument.
+ 	\item \py{fringe.extend(node.expand(problem))} is a method from the \py{List} class that appends the list of nodes onto the list of nodes in the frontier (fringe).
+ \end{itemize}
+ \item The \py{graph_search} method keeps track of all the visited states (as well as the states in the frontier).
+ Although it requires more memory to store these states, this method has the advantage of dropping new nodes containing a state that has already been visited.
+ Considering this main advantage, the graph search makes the depth-first search complete for finite state spaces and bounds the space and time complexities by the size of the state space, which is not the case for the tree search (it is not complete and the complexities are bounded by the tree size).
+ \item % Don't know yet, need to run the code
+ \item % :'(
+\end{enumerate}
+
+
+\section{The Knight’s tour Problem}
+
+\begin{enumerate}
+ \item 
+ \item 
+ \item 
+ \item 
+ \item 
+ \item 
+\end{enumerate}
+
+
+\end{document}
+
