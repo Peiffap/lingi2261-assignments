@@ -6,8 +6,6 @@
 import time
 import sys
 from search import *
-import copy
-
 
 #################
 # Problem class #
@@ -16,14 +14,31 @@ class Knight(Problem):
 
     def successor(self, state):
         #print(state)
-        for pos in [(-2,-1), (-1,-2), (2,-1), (-1,2), (2,1), (1,2), (-2,1), (1,-2)]:    # TODO: update, sort the successors following a 
+        positions = []
+        for pos in [(-2,-1), (-1,-2), (2,-1), (-1,2), (2,1), (1,2), (-2,1), (1,-2)]:   # TODO: update, sort the successors following a 
             x = state.x + pos[0]                                                        # good scheme (maybe based on the position of 
             y = state.y + pos[1]                                                        # the knight, towards the center?)
             #print(state.n)
             if (x < state.nCols and x >= 0 and y < state.nRows and y >= 0 and state.grid[y][x] != "♞"):
-                 newstate = State((state.nCols, state.nRows), (y, x), state.n + 1, state.grid)
-                 newstate.grid[state.y][state.x] = "♞"
-                 yield (0, newstate)
+                 positions.append((y,x))
+                 
+        def nsucc(position):
+            ctr = 0
+            for pos in [(-2,-1), (-1,-2), (2,-1), (-1,2), (2,1), (1,2), (-2,1), (1,-2)]:   # TODO: update, sort the successors following a 
+                x = position[1] + pos[0]                                                        # good scheme (maybe based on the position of 
+                y = position[0] + pos[1]                                                        # the knight, towards the center?)
+                if (x < state.nCols and x >= 0 and y < state.nRows and y >= 0 and state.grid[y][x] != "♞"):
+                     ctr += 1    
+            return ctr
+        
+        positions = sorted(positions, key=lambda pos: nsucc(pos))
+        for pos in positions:
+            x = pos[1]
+            y = pos[0]
+            newstate = State((state.nCols, state.nRows), (y, x), state.n + 1, state.grid)
+            newstate.grid[state.y][state.x] = "♞"
+            yield (0, newstate)
+            
 
     def goal_test(self, state):
         return state.n == state.nRows * state.nCols                          # n = 25 when all the tiles of a state are busy
@@ -85,6 +100,7 @@ class State:
 ##############################
 # Use this block to test your code in local
 # Comment it and uncomment the next one if you want to submit your code on INGInious
+'''        
 with open('instances.txt') as f:
     instances = f.read().splitlines()
 
@@ -106,14 +122,16 @@ for instance in instances:
     path.reverse()
 
     print('Number of moves: ' + str(node.depth))
+    """
     for n in path:
         print(n.state)  # assuming that the __str__ function of state outputs the correct format
         print()
+    """
     print("nb nodes explored = ", nbExploredNodes)
     print("time : " + str(endTime - startTime))
-
-
 '''
+
+
 ####################################
 # Launch the search for INGInious  #
 ####################################
@@ -139,4 +157,4 @@ for n in path:
     print()
 print("nb nodes explored = ",nbExploredNodes)
 print("time : " + str(endTime - startTime))
-'''
+

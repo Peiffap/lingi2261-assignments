@@ -2,6 +2,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage[top=2cm, bottom=2cm,left=2cm,right=2cm]{geometry}
 \usepackage{minted}
+\usepackage{booktabs}
 
 \newcommand{\py}[1]{\mintinline{python}{#1}}
 
@@ -35,7 +36,11 @@
  \item The \py{graph_search} method keeps track of all the visited states (as well as the states in the frontier).
  Although it requires more memory to store these states, this method has the advantage of dropping new nodes containing a state that has already been visited.
  Considering this main advantage, the graph search makes the depth-first search complete for finite state spaces and bounds the space and time complexities by the size of the state space, which is not the case for the tree search (it is not complete and the complexities are bounded by the tree size).
- \item The \py{closed} list is a dictionary. Dictionaries are indexed by keys, which can be any immutable type; strings and numbers can always be keys. In \py{search.py}, the keys of \py{closed} are the states of the problem and the values of \py{closed} are always \py{True}. In the template of this problem, the state is represented by a 2D array of characters (a knight or a blank space), as well as other integer parameters. The 2D array is a list and is mutable, the state class is thus mutable and cannot be used for by the search from the dictionary closed. 
+ \item The \py{closed} list is a dictionary.
+ Dictionaries are indexed by keys, which can be any immutable type; strings and numbers can always be keys.
+ In \py{search.py}, the keys of \py{closed} are the states of the problem and the values of \py{closed} are always \py{True}.
+ In the template of this problem, the state is represented by a 2D array of characters (a knight or a blank space), as well as other integer parameters.
+ The 2D array is a list and is mutable, the state class is thus mutable and cannot be used by the search from the dictionary closed. 
  \item % :'(
 \end{enumerate}
 
@@ -43,10 +48,16 @@
 \section{The Knight’s tour Problem}
 
 \begin{enumerate}
- \item The knight can move on at most 8 different tiles per move. The branching factor is thus $b = 8$.
- \item The number of tiles is $n_{cols} \times n_{rows} = 25$ in the template board, meaning that the tree is not so deep compare to the breadth.
+ \item The knight can move to at most 8 different tiles per move.
+ However, this is a pessimistic estimate; the branching factor only goes to 8 asymptotically as the board size grows, since certain tiles have less than 8 possible moves.
+ Nevertheless, it is a good estimate: we thus consider a branching factor $b = 8$.
+ \item The number of tiles is $n_{\textnormal{cols}} \times n_{\vphantom{l}\textnormal{rows}} = 25$ in the template board, meaning that the tree is not so deep compared to the breadth.
  \begin{itemize}
-  \item A breadth first search in this case is not so efficient because the branching factor is quite large. Because the number of moves is the same for a given chess board, we are sure that the depth of the solution is the same for all initial positions: $d = n_{cols} \times n_{rows} - 1$. This information leads us to an easy \py{goal_test}, we can simply check that the number of busy tiles (given as a paramer of the \py{state} class) is equal to $d$. The graph search requires too many computations to check if a new state has already been visited. Thus, the tree search is more efficient (at least for now, without improvement of the code...).
+  \item A breadth-first search in this case is not so efficient because the branching factor is quite large.
+  Because the number of moves is the same for a given chess board, we are sure that the depth of the solution is the same for all initial positions: $d = n_{\textnormal{cols}} \times n_{\textnormal{rows}} - 1$.
+  This information leads us to an easy \py{goal_test}, we can simply check that the number of busy tiles (given as a paramer of the \py{state} class) is equal to $d$.
+  The graph search requires too many computations to check if a new state has already been visited.
+  Thus, the tree search is more efficient (at least for now, without improvement of the code\ldots).
   \item 
  \end{itemize}
  \item 
@@ -55,30 +66,21 @@
  
 
 \begin{center}
-\begin{tabular}{ |c|c|c|c|c| } 
- \hline
-  & DFSt [s] & BFSt [s] & DFSg [s] & DFSg [s]\\
- \hline 
+\begin{tabular}{ccccc} 
+ \toprule
+  Instance & DFSt [s] & BFSt [s] & DFSg [s] & DFSg [s]\\
+  \midrule
  1 & 5.075 & 32 & & \\ 
- \hline 
  2 & 0.504 & 38 & & \\ 
- \hline 
  3 & 4.633 & 34 & & \\ 
- \hline 
  4 & 5.650 & 33 & & \\ 
- \hline 
  5 & 0.401 & & & \\ 
- \hline 
  6 & 0.238 & & & \\ 
- \hline 
  7 & 7.485 & & & \\ 
- \hline 
  8 & 0.871 & & & \\ 
- \hline 
- 9 & 0.818 & & & \\ 
- \hline 
+ 9 & 0.818 & & & \\  
  10 & 3.129 & & & \\ 
- \hline
+ \bottomrule
 \end{tabular}
 \end{center}
 
