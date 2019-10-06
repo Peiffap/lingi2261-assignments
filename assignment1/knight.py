@@ -36,7 +36,7 @@ class Knight(Problem):
         # Thus, we sort the successors of "state" following the number of their own successors.
         # It is sorted in descending order since the yield method gives the states one-by-one, 
         # it gives thus the state with the lowest successors in the end. This state is then on top of 
-        # queue and checked first when 'frontier' is LIFO queue.
+        # the queue and checked first when 'frontier' is a LIFO queue.
         # However, without changing the methods in search.py, we cannot sort the successors 
         # for both the depth and breadth search at the same time:
         # for the breadth search (FIFO queue), the successors are sorted following the wrong
@@ -94,6 +94,7 @@ class State:
     
     
     # Comparison of the State class: required in order to set the 'state' class as a key (for the 'closed' dictionary)
+    # Compare the value of both grids
     def __eq__(self, other):
         if (self.x != other.x) or (self.y != other.y) or (self.n != other.n):  # Quick check before entering the double for loop
             return False 
@@ -103,11 +104,19 @@ class State:
                     return False
         return True
     
-    # Hash function required to make this class comparable
-    # Normally it should be the grid, but the grid is a list (mutable). So it cannot be used as a key for the dictionary.
-    # Need to fix this, maybe with a tuple (immutable) containing a copy of the grid...
+    # Hash function required to make this class comparable: convert an object into an integer.
+    # The hash of the grid is sufficient to completely describe this class.
+    # Each tile can have 3 values, we thus store each tile on 2 bits (0 for " ", 1 for "♘" and 2 for "♞").
+    # Then, we just sum all the values for each tile in order to get a unique hash associated to a specific grid.
     def  __hash__(self):
-        return hash(self.nRows)  
+        ctr = 0
+        for i in range(self.nRows):
+            for j in range(self.nCols):
+                if self.grid[i][j] == "♘":
+                    ctr += (self.nRows * i + j) * 4 + 1
+                elif self.grid[i][j] == "♞":
+                    ctr += (self.nRows * i + j) * 4 + 2
+        return ctr
 
 ##############################
 # Launch the search in local #
@@ -136,11 +145,11 @@ for instance in instances:
     path.reverse()
 
     print('Number of moves: ' + str(node.depth))
-    
-    #for n in path:
-        #print(n.state)  # assuming that the __str__ function of state outputs the correct format
-        #print()
-    
+    '''
+    for n in path:
+        print(n.state)  # assuming that the __str__ function of state outputs the correct format
+        print()
+    '''
     print("nb nodes explored = ", nbExploredNodes)
     print("time : " + str(endTime - startTime))
 
