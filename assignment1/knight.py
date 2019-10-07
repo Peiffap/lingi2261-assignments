@@ -13,46 +13,44 @@ from search import *
 class Knight(Problem):
 
     def successor(self, state):
-        positions = []                     # Create a list of possible positions (successors) based on the current position (state)
-        for pos in [(-2,-1), (-1,-2), (2,-1), (-1,2), (2,1), (1,2), (-2,1), (1,-2)]:    # The Kight moves following an 'L' shape
+        positions = []  # Create a list of possible positions (successors) based on the current position (state)
+        for pos in [(-2,-1), (-1,-2), (2,-1), (-1,2), (2,1), (1,2), (-2,1), (1,-2)]:    # The Knight moves following an 'L' shape
             x = state.x + pos[1]                                                        # Next x (horizontal) position
             y = state.y + pos[0]                                                        # Next y (vertical) position
-            if (x < state.nCols and x >= 0 and y < state.nRows and y >= 0 and state.grid[y][x] != "♞"): # If the next position is in the board and not already visited
-                 positions.append((y,x))                                                # Add the position in the list of successors
+            if (x < state.nCols and x >= 0 and y < state.nRows and y >= 0 and state.grid[y][x] != "♞"): # If the next position is in the board and not yet visited
+                 positions.append((y,x))                                                                # Add the position to the list of successors
                  
-        # nsucc computes the number of successors for all the possible successors of the current state
-        def nsucc(position):
-            # Initialize the counter (start at -1 because one of the next positions of the successor
-            # is a "♘", and the computation is reduced if we do not add this fifth condition in the 'if' of line 31)
-            ctr = -1                                                               
-            for pos in [(-2,-1), (-1,-2), (2,-1), (-1,2), (2,1), (1,2), (-2,1), (1,-2)]:
-                x = position[1] + pos[0]                                                   # Next x (horizontal) position
-                y = position[0] + pos[1]                                                   # Next y (vertical) position
-                if (x < state.nCols and x >= 0 and y < state.nRows and y >= 0 and state.grid[y][x] != "♞"):
-                     ctr += 1
-            return ctr
+        """
+            border(position)
+            
+        computes the distance from the argument position to the nearest border
+        """
+        def border(position):
+            # return min(pos[0], pos[1], state.nRows - pos[0] - 1, state.nCols - pos[1] - 1)
+            return min(position[0]**2 + position[1]**2, position[0]**2 + (state.nCols - position[1] - 1)**2, (state.nRows - position[0] - 1)**2 + position[1]**2, (state.nCols - position[1] - 1)**2 + (state.nRows - position[0] - 1)**2)
         
-        # We want to reach first the successors with the lowest number of successors.
-        # Thus, we sort the successors of "state" following the number of their own successors.
+        # We want to reach first the successors closest to a border.
+        # Thus, we sort the successors of "state" following their distance from a border.
         # It is sorted in descending order since the yield method gives the states one-by-one, 
-        # it gives thus the state with the lowest successors in the end. This state is then on top of 
-        # the queue and checked first when 'frontier' is a LIFO queue.
+        # it gives thus the state closest to a border in the end.
+        # This state is then on top of the queue and checked first when 'frontier' is a LIFO queue.
         # However, without changing the methods in search.py, we cannot sort the successors 
         # for both the depth and breadth search at the same time:
-        # for the breadth search (FIFO queue), the successors are sorted following the wrong
-        # (descending) order in 'frontier' and will thus begin to check the states with the higher number
-        # of successors. Since the depth search is faster without sort, we have chosen to sort in the right order for this search.
-        positions = sorted(positions, key=lambda pos: nsucc(pos), reverse=True)
+        # for the BFS (FIFO queue), the successors are sorted following the wrong
+        # (descending) order in 'frontier' and will thus begin to check the states further away from the border.
+        # Since DFS is faster without sort, we have chosen to sort in the right order for this search.
+        positions = sorted(positions, key=lambda pos: border(pos), reverse=True)
         for pos in positions:
             x = pos[1]
             y = pos[0]
-            newstate = State((state.nCols, state.nRows), (y, x), state.n + 1, state.grid) # New state with the new initial
-            newstate.grid[state.y][state.x] = "♞"                                                  # position and n+1 busy tiles
-            yield(0, newstate)                  # Yield the action (0 because the paths are costless) and the state to the 'expand' method
+            newstate = State((state.nCols, state.nRows), (y, x), state.n + 1, state.grid)  # New state with the new initial
+            newstate.grid[state.y][state.x] = "♞"                                          # position and n+1 visited tiles
+            #print(newstate)
+            yield(0, newstate)  # Yield the action (0 because the paths are costless) and the state to the 'expand' method
             
 
-    def goal_test(self, state):                               # Check if the state is the goal:
-        return state.n == state.nRows * state.nCols           # n = nRows * nCols when all the tiles of a state are busy
+    def goal_test(self, state):                      # Check if the state is the goal:
+        return state.n == state.nRows * state.nCols  # n = nRows * nCols when all the tiles of a state have been visited
 
 
 
@@ -61,8 +59,8 @@ class Knight(Problem):
 ###############
 
 class State:
-    def __init__(self, shape, init_pos, num=1, grid=None):       # New params: num (number of busy tiles)
-        self.nCols = shape[0]                                    #             grid (grid of the ancestor, if present)
+    def __init__(self, shape, init_pos, num=1, grid=None):  # New params: num (number of visited tiles)
+        self.nCols = shape[0]                               #             grid (grid of the ancestor, if present)
         self.nRows = shape[1]
         self.grid = []
         for i in range(self.nRows):
@@ -72,11 +70,11 @@ class State:
                 for j in range(self.nCols):
                     self.grid[i][j] = grid[i][j]
         self.grid[init_pos[0]][init_pos[1]] = "♘"
-        self.x = init_pos[1]                          # y (vertical) coordinate of the initial tile
-        self.y = init_pos[0]                          # x (horizontal) coordinate of the initial tile
-        self.n = num                                  # number of busy tiles
+        self.x = init_pos[1]  # y (vertical) coordinate of the initial tile
+        self.y = init_pos[0]  # x (horizontal) coordinate of the initial tile
+        self.n = num          # number of visited tiles
 
-    def __str__(self):                                # To string method
+    def __str__(self):  # To string method
         nsharp = (2 * self.nCols) + (self.nCols // 5)
         s = "#" * nsharp
         s += "\n"
@@ -108,7 +106,7 @@ class State:
     # The hash of the grid is sufficient to completely describe this class.
     # Each tile can have 3 values, we thus store each tile on 2 bits (0 for " ", 1 for "♘" and 2 for "♞").
     # Then, we just sum all the values for each tile in order to get a unique hash associated to a specific grid.
-    def  __hash__(self):
+    def __hash__(self):
         ctr = 0
         for i in range(self.nRows):
             for j in range(self.nCols):
