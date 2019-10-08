@@ -1,110 +1,136 @@
-\documentclass[a4paper,10pt]{article}
+\documentclass[journal]{IEEEtran}
 \usepackage[utf8]{inputenc}
-\usepackage[top=2cm, bottom=2cm,left=2cm,right=2cm]{geometry}
 \usepackage{minted}
 \usepackage{booktabs}
 \usepackage{color}
 
+\usepackage[binary-units=true]{siunitx}
+
 \newcommand{\py}[1]{\mintinline{python}{#1}}
 
-\title{LINGI2261 -- Assignment 1 of group 13}
-\author{Martin Braquet \and Gilles Peiffer}
+\title{Artificial Intelligence (\texttt{LINGI2261}) \\ Assignment 1---Group 13}
+\author{Martin Braquet, Gilles Peiffer}
+\date{October 11, 2019}
 
 \begin{document}
 
 \maketitle
 
 \section{Python AIMA}
-
-\begin{enumerate}
- \item The main class, \py{Problem}, is a very general class. We thus have to subclass it in order to adapt it for our specific problems. The methods requiring a specific implementation are detailed below:
- 
+\subsection{Defined Classes}
+The main class, \py{Problem}, is a very general class. One thus has to subclass it in order to adapt it to these specific problems.
+ The methods requiring a specific implementation are detailed below:
  \begin{itemize}
   \item \py{successor} returns a sequence of (action, state) pairs reachable from a specific state.
-  \item \py{goal_test} determines when the search algorithm must stop.
+  \item \py{goal_test} determines when the search algorithm must stop by checking whether the current state is a goal state.
   \item The \py{__init__} method of the \py{State} class is also updated to incorporate more parameters.
  \end{itemize}
- After that, we need to create instances of our new subclass and solve them with the interesting search functions available in \texttt{search.py}.
- \item The \py{tree_search} method tries to find a solution by taking as arguments the problem to solve and an empty frontier, for which the fundamental difference is the type of this list.
- Indeed, \py{breadth_first_graph_search} uses a LIFO queue to store the nodes of the frontier in order to search the shallowest nodes first, while the \py{depth_first_graph_search} uses a FIFO queue in order to search the deepest nodes first.
- \item There are two involved methods detailed hereinafter.
+This class is used inside \py{tree_search} to get access to these methods, which are considered as black boxes in the AIMA code.
+ After that, one needs to create instances of this new subclass and solve them with the search functions available in \py{search.py}.
+ \subsection{BFSg vs. DFSg}
+ The \py{graph_search} method tries to find a solution by taking as arguments the problem to solve and an empty frontier, for which the fundamental difference is the type of this list.
+ Indeed, \py{breadth_first_graph_search} uses a FIFO queue to store the nodes of the frontier in order to search the shallowest nodes first, whereas \py{depth_first_graph_search} uses a LIFO queue  (also called a stack) in order to search the deepest nodes first.
+ \subsection{Instruction Analysis}
+ There are two involved methods and classes detailed hereinafter.
  \begin{itemize}
- 	\item \py{node.expand(problem)} is a method from the \py{Node} class that outputs a list of the successors of the node given as argument.
- 	\item \py{fringe.extend(node.expand(problem))} is a method from the \py{List} class that appends the list of nodes onto the list of nodes in the frontier (fringe).
+ 	\item \py{expand()} is a method from the \py{Node} class that outputs a list of the successors of the node given as argument.
+ 	\item \py{extend()} is a method from the \py{List} class that appends the list of nodes onto the list of nodes in the frontier (fringe).
  \end{itemize}
- \item The \py{graph_search} method keeps track of all the visited states (as well as the states in the frontier).
+ \subsection{Graph Search vs. Tree Search}
+ The \py{graph_search} method keeps track of all the visited states (as well as the states in the frontier).
  Although it requires more memory to store these states, this method has the advantage of dropping new nodes containing a state that has already been visited.
- Considering this main advantage, the graph search makes the depth-first search complete for finite state spaces and bounds the space and time complexities by the size of the state space, which is not the case for the tree search (it is not complete and the complexities are bounded by the tree size).
- \item The \py{closed} list is a dictionary.
+ Considering this main advantage, the graph search makes the depth-first search complete for finite state spaces and bounds the space and time complexities by the size of the state space (\(\mathcal{O}(b^d)\), where \(d\) is the depth of the shallowest goal node), which is not the case for the tree search (it is not complete since it can get stuck in a loop and the complexities are bounded by the tree size, (\(\mathcal{O}(b^m)\), where \(m\) is the maximum depth of \emph{any} node)).
+ \subsection{Closed List}
+ \py{closed} is a dictionary.
  Dictionaries are indexed by keys, which can be any comparable and hashable object.
- In \py{search.py}, the keys of \py{closed} are the states of the problem and the values of \py{closed} are always \py{True}.
- The methods involved in the search are \py{__eq__(self, other)} and \py{__hash__(self)} of the key inside a dictionary, we thus overide these methods in the \py{State} class in order to make this class comparable and hashable. \py{__eq__(self, other)} returns \py{True} or \py{False} based on the comparison between \py{self} and \py{other}. Because is uniquely defined if we know the grid, the value of both grids id compared. 
+ In \py{search.py}, the keys in \py{closed} are the states of the problem and the values in \py{closed} are always \py{True}.
  
- \py{__hash__(self)} returns the hash value (an integer) of an object (here \py{State}) defined following our purposes. In order to keep the same hash for a class, we cannot change the mutable variables of the class as soon as the dictionary has applied the hash function for this object. It is verified in our case since we hash the class based on the value of the grid, which is never changed after its creation. The hash of the grid is sufficient to completely describe this class. Since each tile can have 3 values, we store each tile on 2 bits (0 for a blank space, 1 for a white knight and 2 for a dark knight). Then, we just sum all the values for each tile in order to get a unique hash associated to a specific grid.
- \item \textcolor{red}{TODO}
-\end{enumerate}
-
-
-\section{The Knight’s tour Problem}
-
-\begin{enumerate}
- \item The knight can move to at most 8 different tiles per move.
- However, we have to keep in mind that this number will decrease while we fill the board. The branching factor, defined as the maximum number of successors for the whole problem is $b = 8$.
- \item The number of tiles is $n_{\textnormal{cols}} \times n_{\vphantom{l}\textnormal{rows}} = 25$ in the template board, meaning that the tree is not so deep compared to the breadth.
- \begin{itemize}
-  \item A breadth-first search in this case is not so efficient because the branching factor is quite large.
-  Because the number of moves is the same for a given chess board, we are sure that the depth of the solution is the same for all initial positions: $d = n_{\textnormal{cols}} \times n_{\textnormal{rows}} - 1$.
-  This information leads us to an easy \py{goal_test}, we can simply check that the number of busy tiles (given as a paramer of the \py{State} class) is equal to $d$. The depth-first search is very fast when the successors are sorted, as detailed in the next paragraphs.
-  \item The graph search requires to run the \py{__eq__(self, other)} and \py{__hash__(self)} methods, which loop on each tile of the board. It implies too many computations to check if a new state has already been visited. It is validated by the computation time available in the table below. Because the number of nodes reached up to the solution is very small with a tree search, the increased computation time of dictionary search does not compensate the gain of a reduced number of reached nodes for the graph search. The tree search is thus the best algorithm for this problem.
- \end{itemize}
- \item The most important work has been achieved for the \py{successor(self, state)} method of the \py{Knight} class. It first consists to create a list of the next available positions (successors) based on the current position (state). Then, the specificity of our very efficient algorithm is that we \textbf{sort the successors by ascending number of their own successors}. Indeed, we use the \py{nsucc(position)} method which computes the number of successors for all the possible successors of the current state. The knight will thus go through the tiles that are the most difficult to reach (few successors), these are around the corners and borders of the board. If it manages to travel around the borders without being stucked, reaching the center of the board is an easier part (significantly increasing his chances to find a solution).
+ The methods involved in the search are \py{__eq__(self, other)} and \py{__hash__(self)} of the key inside a dictionary.
+ One must thus override these methods in the \py{State} class in order to make this class comparable and hashable.
+ \py{__eq__(self, other)} returns \py{True} or \py{False} based on the comparison between \py{self} and \py{other}.
+ Because the hashed value is uniquely defined if one knows the grid, the value of both grids is compared. 
  
- With this technique, the knight finds directly the solution (25 searched nodes) for 8 out of the 10 instances given as an example. This enhances the fact that this easy problem is not very dependant on the first moves of the knight because there are many solutions for a given initial position.
+ \py{__hash__(self)} returns the hash value (an integer) of an object (here an instance of the \py{State} class) defined in order to meet our specific needs.
+ In order to keep the same hash for a class, one cannot change the mutable variables of the class as soon as the dictionary has applied the hash function for this object.
+ This is verified in the case at hand since the class is hashed based on the value of the grid, which is never changed after its creation.
+ The hash of the grid is sufficient to completely describe this class: since each tile can have 3 values, one can store each tile on 2 bits (00 for a blank space, 01 for a white knight and 10 for a dark knight).
+ Then, one can just sum all the values according to a formula which combines position and symbol for each tile in order to get a unique hash associated to a specific grid.
+ \subsection{Symmetrical states} One's goal is to avoid visiting symmetrical states multiple times.
+ In order to achieve this, care must be taken to define the hashing function in such a way that two symmetrical states will have the same hash.
+ This way, once one of the symmetrical states has been visited, the closed list contains its hash, and the next time the algorithm encounters this state or any other state in its symmetry group, it will be considered as having already been visited.
  
- The list of successors is sorted in descending order since the yield method gives the states one-by-one, it gives thus the state with the lowest successors in the end. This state is then on top of the queue and checked first when \py{frontier} is a LIFO queue. However, without changing the methods in \py{search.py}, we cannot sort the successors for both the depth-first and breadth-first searches at the same time: for the breadth-first search (FIFO queue), the successors are sorted following the wrong (descending) order in \py{frontier} and will thus begin to check the states (in the same layer) with the higher number of successors. Since the depth-first search is faster without sort, we have chosen to sort in the right order for the depth-first search.
- \item The time computation for the four algorithms and the 10 instances are detailed below, following this scheme: time (in [s]) / number of nodes.
- \textcolor{red}{TODO}
+ However, this way of doing only came to the authors after thinking over the problem for a while, and by that time, they already had an efficient code which could solve all test instances well within the time limit.
+ For this reason, a symmetry-aware hashing function was never implemented.
 
-\begin{center}
-\begin{tabular}{cccccc} 
+
+\section{The Knight’s Tour Problem}
+\subsection{Description}
+The knight can move to at most 8 different tiles per move (according to the legal moves of a knight on a chessboard, while taking into account the fact the knight cannot leave said board).
+ One can thus consider a branching factor of 8.
+ \subsection{Problem Analysis}
+ The number of tiles is \(n_{\textnormal{cols}} \times n_{\textnormal{\vphantom{l}rows}} = 25\) in the template board, meaning that the tree is not excessively deep compared to its breadth.
+ \begin{enumerate}
+  \item A breadth-first search in this case is not efficient because the branching factor is quite large.
+  Because the number of moves is the same for a given chess board, one knows that the depth of the solution is the same for all initial positions: \(d = n_{\textnormal{cols}} \times n_{\textnormal{\vphantom{l}rows}} - 1\).
+  This information leads to an easy \py{goal_test} implementation, since one can simply check that the number of visited tiles (given as a paramer of the \py{State} class) is equal to \(d\).
+  The depth-first search is quite efficient when the successors are sorted, even according to an uninformed heuristic, as detailed in the next paragraphs.
+  \item The graph search calls the \py{__eq__(self, other)} and \py{__hash__(self)} methods, which loop on each tile of the board.
+  This implies too many computations to check if a new state has already been visited.
+  This observation is validated by the table of computation times available below.
+  Because the number of nodes reached up to the solution is very small with a tree search, the increased computation time due to dictionary lookups does nullifies (to some extent) the gain offered by having a reduced number of reached nodes for the graph search.
+  The tree search is thus the best algorithm for this problem.
+ \end{enumerate}
+ \subsection{Implementation} The majority of the work for this implementation was done on the \py{successor(self, state)} method of the \py{Knight} class.
+ This method first creates a list of the next available positions (successors) based on the current position (state).
+ Then, the specificity of the algorithm is that the successors are sorted according to their proximity to the nearest border of the chessboard, so as to explore the most remote successors first.
+ In order to do this, the \py{border(position)} method which computes the distance to the nearest border for all the possible successors of the current state.
+ The knight will thus go through the tiles that are the most difficult to reach (far from the center of the board).
+ If the knight manages to travel around the borders without reaching a dead end, reaching the center of the board is much easier part (significantly increasing the odds of finding a solution).
+ 
+ With this heuristic, the knight sometimes even directly finds the solution (having explored only 25 nodes).
+ This corroborates the fact that this easy problem is not very dependent on the first couple of moves of the knight because there are multiple solutions for any given initial position.
+ 
+ The list of successors is sorted in descending order since the yield method gives the states one-by-one, it gives thus the state which is closest to the border, last.
+ This state is then on top of the stack and checked first when \py{frontier} is a LIFO queue.
+ However, without changing the methods in \py{search.py}, one cannot sort the successors optimally for both the depth-first and breadth-first searches at the same time: for the breadth-first search (FIFO queue), the successors are sorted in the wrong order in \py{frontier} and will thus begin to check the states (in the same layer) which are closest to the centre.
+ Since the depth-first search is faster when no heuristic is applied, the authors elected to sort in the right order for the depth-first search, in order to maximize the fastest algorithm.
+ \subsection{Experiments}
+ The computation times for the four algorithms on each of the 10 instances are detailed below.\footnote{Experiments were run on an Early 2015 MacBook Pro, running macOS Sierra 10.12.6, using a \SI{2.9}{\giga\hertz} Intel Core i5 processor, with \SI{8}{\giga\byte} of \SI{1867}{\mega\hertz} DDR3 RAM and an Intel Iris Graphics 6100 GPU.} 
+
+\begin{table}[!hbtp]
+	\centering
+\begin{tabular}{ccccc} 
  \toprule
-  Instance & & DFSt & BFSt & DFSg & DFSg\\
+  Inst. & DFSt (\si{\milli\second}) & BFSt (\si{\second}) & DFSg (\si{\milli\second}) & BFSg\\
   \midrule
- 1 & time [s] & 5.075 & 32 & 1.5 & 2500 \\ 
-   & $n_{nodes}$ & 25    & 25 & 25  & 175 \\ 
- 1 & time [s] & 5.075 & 32 & 1.5 & 2500 \\ 
-   & $n_{nodes}$ & 25    & 25 & 25  & 175 \\ 
- 1 & time [s] & 5.075 & 32 & 1.5 & 2500 \\ 
-   & $n_{nodes}$ & 25    & 25 & 25  & 175 \\ 
- 1 & time [s] & 5.075 & 32 & 1.5 & 2500 \\ 
-   & $n_{nodes}$ & 25    & 25 & 25  & 175 \\ 
- 1 & time [s] & 5.075 & 32 & 1.5 & 2500 \\ 
-   & $n_{nodes}$ & 25    & 25 & 25  & 175 \\ 
- 1 & time [s] & 5.075 & 32 & 1.5 & 2500 \\ 
-   & $n_{nodes}$ & 25    & 25 & 25  & 175 \\ 
- 1 & time [s] & 5.075 & 32 & 1.5 & 2500 \\ 
-   & $n_{nodes}$ & 25    & 25 & 25  & 175 \\ 
- 1 & time [s] & 5.075 & 32 & 1.5 & 2500 \\ 
-   & $n_{nodes}$ & 25    & 25 & 25  & 175 \\ 
- 1 & time [s] & 5.075 & 32 & 1.5 & 2500 \\ 
-   & $n_{nodes}$ & 25    & 25 & 25  & 175 \\ 
- 1 & time [s] & 5.075 & 32 & 1.5 & 2500 \\ 
-   & $n_{nodes}$ & 25    & 25 & 25  & 175 \\ 
- \bottomrule
+ 1 & 1.82 (58) & 46.5 (1453934) & 5.72 (58) & \dag \\
+ 2 & 3.50 (25) & 55.5 (1734776) & 3.22 (25) & \dag \\
+ 3 & 1.76 (58) & 46.6 (1465422) & 2.42 (58) & \dag \\
+ 4 & 3.77 (58) & 48.4 (1465422) & 2.72 (58) & \dag \\
+ 5 & 2.73 (25) & 20.6 (641514) & 2.44 (25) & \dag \\
+ 6 & 2.96 (25) & 55.4 (1734776) & 2.86 (25) & \dag \\
+ 7 & 4.20 (58) & 47.9 (1465422) & 8.08 (58) & \dag \\
+ 8 & 3.76 (58) & 48.6 (1465422) & 3.54 (58) & \dag \\
+ 9 & 2.13 (58) & 47.6 (1453934) & 3.37 (58) & \dag \\
+ 10& 2.22 (58) & 46.5 (1453934) & 2.44 (58) & \dag \\
+ \bottomrule\\
 \end{tabular}
-\end{center}
+\caption{Times are given with 3 significant figures in the unit indicated next to the method and with the number of explored nodes between parentheses.
+Daggers indicate that the computation time exceeded the imposed limit.}
+\end{table}
 
- \item The program is uploaded on INGInious.
- \item 
- \begin{itemize}
-  \item Based on the computation time and the number of reached nodes, it is clear that the depth-first search is by far more efficient than the breadth-first search (partly thanks to the efficient sort of the successors). Also, we can notice that the graph search is a slightly slower due to the comparison required by the dictionary, as expected by the theoritical approach. Thus, the experimental results are indeed consistent with our expectations.
-  \item The depth-first tree search is the most promising for this problem, but it can probably be improved thanks to the additional algorithm seen in the lecture about the uninformed search. We can hope really good results for the bidirectionnal search, However, the iterative deepening search will not be efficient since we known the depth of the goal. A depth-limited search could thus be very interesting if we set the limit at the (known) depth of the goal. Finally, a bidirectionnal search can also fit this problem since the final states are know (all tiles occupied by a black knight, except one which is white). It could reduce the number of explored nodes, and more significantly for a breadth-first search. 
+ \subsection{Submission}
+ The program is uploaded on INGInious and passes 15/15 tests.
+ \subsection{Conclusion}
+ \begin{enumerate}
+  \item Based on the computation time and the number of reached nodes, it is clear that the depth-first search is far more efficient than the breadth-first search (thanks in part to the efficient sort of the successors). Also, one can notice that the graph search is slightly slower due to the comparison required by the dictionary, as predicted by the theoretical approach.
+  Thus, the experimental results are indeed consistent with our expectations.
+  \item The depth-first tree search is the most promising for this problem, but it can most likely be improved using additional algorithms covered during the lecture on uninformed search.
+  A depth-limited search could be very interesting if one sets the limit at the (known) depth of the goal.
+  On the other hand, the iterative deepening search will not be particularly efficient since we know the depth of the goal.
+  Finally, a bidirectional search will also fit this problem since the final states are known (all tiles are occupied by a black knight, except one which is white).
+  It should significantly reduce the number of explored nodes, especially for a breadth-first search.
   
-  But obviously, these possible improvements will not surpass our depth-first tree search algorithm if this one finds directly the solution (which means with $n_{\textnormal{cols}} \times n_{\vphantom{l}\textnormal{rows}}$ explored nodes) as it is the case for some initial positions. For example, with $n_{\textnormal{cols}}=n_{\vphantom{l}\textnormal{rows}}=50$ and the initial position being $(0,0)$, $(1,1)$, $(10,10)$ or $(10,12)$, the number of explored nodes is the minium (2500) and the computation time is 3.3 secondes.
- \end{itemize}
-
-\end{enumerate}
-
-
+  But obviously, these possible improvements will not surpass our depth-first tree search algorithm if this one finds directly the solution (which means with \(n_{\textnormal{cols}} \times n_{\textnormal{\vphantom{l}rows}}\) explored nodes) as is the case for some initial positions.
+ \end{enumerate}
 \end{document}
-
