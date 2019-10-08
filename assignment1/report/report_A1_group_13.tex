@@ -57,7 +57,7 @@ This class is used inside \py{tree_search} to get access to these methods, which
  The hash of the grid is sufficient to completely describe this class: since each tile can have 3 values, one can store each tile on 2 bits (00 for a blank space, 01 for a white knight and 10 for a dark knight).
  Then, one can just sum all the values according to a formula which combines position and symbol for each tile in order to get a unique hash associated to a specific grid.
  \subsection{Symmetrical states}
- Since the board and the moves of the knight are symmetriccal with respect to multiple axes of symmetry, two symmetrical states will lead to two symmetrical solutions (if they exist).
+ Since the board and the moves of the knight are symmetrical with respect to multiple axes of symmetry, two symmetrical states will lead to two symmetrical solutions (if they exist).
  One's goal is thus to avoid visiting symmetrical states multiple times. 
  In order to achieve this, care must be taken to define the hashing function and the equality function in such a way that two symmetrical states will have the same hash.
  This way, once one of the symmetrical states has been visited, the closed list contains its hash.
