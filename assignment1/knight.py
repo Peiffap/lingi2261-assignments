@@ -26,7 +26,6 @@ class Knight(Problem):
         computes the distance from the argument position to the nearest border
         """
         def border(position):
-            # return min(pos[0], pos[1], state.nRows - pos[0] - 1, state.nCols - pos[1] - 1)
             return min(position[0]**2 + position[1]**2, position[0]**2 + (state.nCols - position[1] - 1)**2, (state.nRows - position[0] - 1)**2 + position[1]**2, (state.nCols - position[1] - 1)**2 + (state.nRows - position[0] - 1)**2)
         
         # We want to reach first the successors closest to a border.
@@ -45,7 +44,6 @@ class Knight(Problem):
             y = pos[0]
             newstate = State((state.nCols, state.nRows), (y, x), state.n + 1, state.grid)  # New state with the new initial
             newstate.grid[state.y][state.x] = "♞"                                          # position and n+1 visited tiles
-            #print(newstate)
             yield(0, newstate)  # Yield the action (0 because the paths are costless) and the state to the 'expand' method
             
 
@@ -92,13 +90,13 @@ class State:
     
     
     # Comparison of the State class: required in order to set the 'state' class as a key (for the 'closed' dictionary)
-    # Compare the value of both grids
+    # Compare the value of both grids, as well as their symmetries
     def __eq__(self, other):
         if (self.x != other.x) or (self.y != other.y) or (self.n != other.n):  # Quick check before entering the double for loop
-            return False 
+            return False
         for i in range(self.nRows):                                            # Compare each tile one-by-one
             for j in range(self.nCols):
-                if self.grid[i][j] != other.grid[i][j]:
+                if (self.grid[i][j] != other.grid[i][j] and (self.nRows == self.nCols and self.grid[i][j] != other.grid[j][i]) and self.grid[i][j] != other.grid[self.nRows-1-i][self.nCols-1-j] and self.grid[i][j] != other.grid[self.nRows-1-i][j] and self.grid[i][j] != other.grid[i][self.nCols-1-j]):
                     return False
         return True
     
@@ -106,6 +104,8 @@ class State:
     # The hash of the grid is sufficient to completely describe this class.
     # Each tile can have 3 values, we thus store each tile on 2 bits (0 for " ", 1 for "♘" and 2 for "♞").
     # Then, we just sum all the values for each tile in order to get a unique hash associated to a specific grid.
+    # For handling symmetrical states, we have to only implement a hash based on n since 2 
+    # symmetrical grids need to have the same hash.
     def __hash__(self):
         ctr = 0
         for i in range(self.nRows):
@@ -115,13 +115,14 @@ class State:
                 elif self.grid[i][j] == "♞":
                     ctr += (self.nRows * i + j) * 4 + 2
         return ctr
+        #return hash(self.n)
 
 ##############################
 # Launch the search in local #
 ##############################
 # Use this block to test your code in local
 # Comment it and uncomment the next one if you want to submit your code on INGInious
-'''
+
 with open('instances.txt') as f:
     instances = f.read().splitlines()
 
@@ -143,14 +144,15 @@ for instance in instances:
     path.reverse()
 
     print('Number of moves: ' + str(node.depth))
+    '''
     for n in path:
         print(n.state)  # assuming that the __str__ function of state outputs the correct format
         print()
+    '''
     print("nb nodes explored = ", nbExploredNodes)
     print("time : " + str(endTime - startTime))
 
 '''
-
 ####################################
 # Launch the search for INGInious  #
 ####################################
@@ -176,3 +178,4 @@ for n in path:
     print()
 print("nb nodes explored = ",nbExploredNodes)
 print("time : " + str(endTime - startTime))
+'''

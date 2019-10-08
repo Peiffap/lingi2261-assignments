@@ -154,7 +154,6 @@ for instance in instances:
     print("time : " + str(endTime - startTime))
 
 '''
-
 ####################################
 # Launch the search for INGInious  #
 ####################################
