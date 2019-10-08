@@ -24,7 +24,7 @@ The main class, \py{Problem}, is a very general class. One thus has to subclass 
   \item \py{successor} returns a sequence of (action, state) pairs reachable from a specific state.
   \item \py{goal_test} determines when the search algorithm must stop by checking whether the current state is a goal state.
   \item The \py{__init__} method of the \py{State} class is also updated to incorporate more parameters.
-  \item As explained hereafter, the \py{__hash__} and \py{__eq__} methods of the \py{State} class are also implemented..
+  \item As explained hereinafter, the \py{__hash__} and \py{__eq__} methods of the \py{State} class are also implemented.
  \end{itemize}
 This class is used inside \py{tree_search} to get access to these methods, which are considered as black boxes in the AIMA code.
  After that, one needs to create instances of this new subclass and solve them with the search functions available in \py{search.py}.
@@ -56,11 +56,18 @@ This class is used inside \py{tree_search} to get access to these methods, which
  This is verified in the case at hand since the class is hashed based on the value of the grid, which is never changed after its creation.
  The hash of the grid is sufficient to completely describe this class: since each tile can have 3 values, one can store each tile on 2 bits (00 for a blank space, 01 for a white knight and 10 for a dark knight).
  Then, one can just sum all the values according to a formula which combines position and symbol for each tile in order to get a unique hash associated to a specific grid.
- \subsection{Symmetrical states} Since the board and the moves of the knight are symetric with respect to multiple axes of symmetry, two symmetrical states will lead to two symmetrical solutions (if they exist). One's goal is thus to avoid visiting symmetrical states multiple times. 
+ \subsection{Symmetrical states}
+ Since the board and the moves of the knight are symmetriccal with respect to multiple axes of symmetry, two symmetrical states will lead to two symmetrical solutions (if they exist).
+ One's goal is thus to avoid visiting symmetrical states multiple times. 
  In order to achieve this, care must be taken to define the hashing function and the equality function in such a way that two symmetrical states will have the same hash.
- This way, once one of the symmetrical states has been visited, the closed list contains its hash. And the next time the algorithm encounters this state or any other state in its symmetry group, it will be considered as having already been visited.
+ This way, once one of the symmetrical states has been visited, the closed list contains its hash.
+ The next time the algorithm encounters this state or any other state in its symmetry group, it will be considered as having already been visited.
  
- The analysis of the explored nodes are detailed below for three different algorithms on a $7\times7$ grid. Case 1 is run without symmetrical state. Case 2 has an \py{__eq__} method that returns \py{True} for symmetrical states, whereas the \py{__hash__} method is based on the status of the grid and thus returns a different hash for these symmetrical states. Thus, this second method does not remove all the symmetrical states. Case 3 uses an hash that is only based on the number of visited tiles, this is the only information guaranteeing that two symmetrical states will have the same hash. One can notice that this third method is slower than the two others since there are more states having the same hash, the dictionary lookup time is thus affected.
+ The analysis of the explored nodes are detailed below for three different algorithms on a $7\times7$ grid.
+ Case 1 is run without symmetrical states.
+ Case 2 has an \py{__eq__} method that returns \py{True} for symmetrical states, whereas the \py{__hash__} method is based on the status of the grid and thus returns a different hash for these symmetrical states.
+ Thus, this second method does not remove all the symmetrical states.
+ Case 3 uses a hash that is only based on the number of visited tiles, this is the only information guaranteeing that two symmetrical states will have the same hash. One can notice that this third method is slower than the two others since there are more states having the same hash, the dictionary lookup time is thus affected.
  
 \begin{table}[!hbtp]
 	\centering
@@ -73,7 +80,7 @@ This class is used inside \py{tree_search} to get access to these methods, which
  3 & 2.72 & 13692\\
  \bottomrule\\
 \end{tabular}
-\caption{Times and numbers of explored nodes for different configurations of the symmetrical algorithms.}
+\caption{Computing time and number of explored nodes for different configurations of the symmetrical algorithms.}
 \end{table}
 
 \section{The Knight’s Tour Problem}
@@ -93,12 +100,14 @@ The knight can move to at most 8 different tiles per move (according to the lega
   Because the number of nodes reached up to the solution is very small with a tree search, the increased computation time due to dictionary lookups does nullify (to some extent) the gain offered by having a reduced number of reached nodes for the graph search.
   The tree search is thus the best algorithm for this problem.
  \end{enumerate}
- \subsection{Implementation} The majority of the work for this implementation was done on the \py{successor(self, state)} method of the \py{Knight} class.
+ \subsection{Implementation}
+ The majority of the work for this implementation was done on the \py{successor(self, state)} method of the \py{Knight} class.
  This method first creates a list of the next available positions (successors) based on the current position (state).
  Then, the specificity of the algorithm is that the successors are sorted according to their proximity to the nearest border of the chessboard, so as to explore the most remote successors first.
  In order to do this, the \py{border(position)} method which computes the distance to the nearest border for all the possible successors of the current state.
  The knight will thus go through the tiles that are the most difficult to reach (far from the center of the board).
- If the knight manages to travel around the borders without reaching a dead end, reaching the center of the board is much easier part (significantly increasing the odds of finding a solution). It is worth noting that this method is not considered as an informed search since it is only based on the states of the successors, and not on the nodes deeper in the tree.
+ If the knight manages to travel around the borders without reaching a dead end, reaching the center of the board is much easier part (significantly increasing the odds of finding a solution).
+ It is worth noting that this method is not considered as an informed search since it is only based on the states of the successors, and not on the nodes deeper in the tree.
  
  With this classification, the knight sometimes even directly finds the solution (having explored only 25 nodes).
  This corroborates the fact that this easy problem is not very dependent on the first couple of moves of the knight because there are multiple solutions for any given initial position.
@@ -109,28 +118,27 @@ The knight can move to at most 8 different tiles per move (according to the lega
  Since the depth-first search is faster when no classification is applied, the authors elected to sort in the right order for the depth-first search, in order to maximize the fastest algorithm.
  %The most important work has been achieved for the \py{successor(self, state)} method of the \py{Knight} class. It first consists to create a list of the next available positions (successors) based on the current position (state). Then, the specificity of our very efficient algorithm is that we \textbf{sort the successors by ascending number of their own successors}. Indeed, we use the \py{nsucc(position)} method which computes the number of successors for all the possible successors of the current state. The knight will thus go through the tiles that are the most difficult to reach (few successors), these are around the corners and borders of the board. If it manages to travel around the borders without being stucked, reaching the center of the board is an easier part (significantly increasing his chances to find a solution).
  \subsection{Experiments}
- The computation times for the four algorithms on each of the 10 instances are detailed in Table \ref{time1}.\footnote{Experiments were run on an Early 2015 MacBook Pro, running macOS Sierra 10.12.6, using a \SI{2.9}{\giga\hertz} Intel Core i5 processor, with \SI{8}{\giga\byte} of \SI{1867}{\mega\hertz} DDR3 RAM and an Intel Iris Graphics 6100 GPU.} 
+ The computation times for the four algorithms on each of the 10 instances are detailed in Table~\ref{time1}.\footnote{Experiments were run on an Early 2015 MacBook Pro, running macOS Sierra 10.12.6, using a \SI{2.9}{\giga\hertz} Intel Core i5 processor, with \SI{8}{\giga\byte} of \SI{1867}{\mega\hertz} DDR3 RAM and an Intel Iris Graphics 6100 GPU.} 
 
 \begin{table}[!hbtp]
 	\centering
 \begin{tabular}{ccccc} 
  \toprule
-  Inst. & DFSt (\si{\milli\second}) & BFSt (\si{\second}) & DFSg (\si{\milli\second}) & BFSg\\
+  Inst. & DFSt (\si{\milli\second}) & BFSt (\si{\second}) & DFSg (\si{\milli\second}) & BFSg (\si{\second})\\
   \midrule
- 1 & 1.82 (58) & 46.5 (1453934) & 5.72 (58) & \dag \\
- 2 & 3.50 (25) & 55.5 (1734776) & 3.22 (25) & \dag \\
- 3 & 1.76 (58) & 46.6 (1465422) & 2.42 (58) & \dag \\
- 4 & 3.77 (58) & 48.4 (1465422) & 2.72 (58) & \dag \\
- 5 & 2.73 (25) & 20.6 (641514) & 2.44 (25) & \dag \\
- 6 & 2.96 (25) & 55.4 (1734776) & 2.86 (25) & \dag \\
- 7 & 4.20 (58) & 47.9 (1465422) & 8.08 (58) & \dag \\
- 8 & 3.76 (58) & 48.6 (1465422) & 3.54 (58) & \dag \\
- 9 & 2.13 (58) & 47.6 (1453934) & 3.37 (58) & \dag \\
- 10& 2.22 (58) & 46.5 (1453934) & 2.44 (58) & \dag \\
+ 1 & 1.68 (58) & 46.5 (1453934) & 3.18 (58) & 4.63 (38619) \\
+ 2 & 0.731 (25) & 55.5 (1734776) & 1.24 (25) & 4.72 (42324) \\
+ 3 & 1.68 (58) & 46.6 (1465422) & 2.44 (58) & 9.47 (49779) \\
+ 4 & 1.55 (58) & 48.4 (1465422) & 2.99 (58) & 6.82 (50335) \\
+ 5 & 0.727 (25) & 20.6 (641514) & 1.22 (25) & 2.63 (28144) \\
+ 6 & 1.01 (25) & 55.4 (1734776) & 1.45 (25) & 5.57 (39201) \\
+ 7 & 2.17 (58) & 47.9 (1465422) & 2.45 (58) & 6.28 (47617) \\
+ 8 & 1.38 (58) & 48.6 (1465422) & 2.51 (58) & 6.60 (47888) \\
+ 9 & 1.37 (58) & 47.6 (1453934) & 2.64 (58) & 5.75 (42292) \\
+ 10& 1.36 (58) & 46.5 (1453934) & 2.34 (58) & 5.52 (43656) \\
  \bottomrule\\
 \end{tabular}
-\caption{Times are given with 3 significant figures in the unit indicated next to the method and with the number of explored nodes between parentheses.
-Daggers indicate that the computation time exceeded the imposed limit.}
+\caption{Times are given with 3 significant figures in the unit indicated next to the method and with the number of explored nodes between parentheses.}
 \label{time1}
 \end{table}
 
