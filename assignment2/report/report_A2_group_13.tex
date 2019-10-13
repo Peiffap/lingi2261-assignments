@@ -1,16 +1,21 @@
 \documentclass[journal]{IEEEtran}
 \usepackage[utf8]{inputenc}
-\usepackage{minted}
+%\usepackage{minted}
 \usepackage{booktabs}
 \usepackage{color}
+\usepackage{commath}
+\usepackage{tikz}
+\usepackage[official]{eurosym}
+\usepackage{fontawesome}
+\usepackage{breqn}
+\usepackage{float}
 
 \usepackage[binary-units=true]{siunitx}
 
-\newcommand{\py}[1]{\mintinline{python}{#1}}
+%\newcommand{\py}[1]{\mintinline{python}{#1}}
 
 \title{Artificial Intelligence (\texttt{LINGI2261}) \\ Assignment 2 --- Group 13}
 \author{Martin Braquet, Gilles Peiffer}
-\date{October 11, 2019}
 
 \begin{document}
 
@@ -18,12 +23,153 @@
 
 \section{A* versus uniform-cost search}
 
-\subsection{}
+\subsection{A consistent and admissible heuristics}
 
-\subsection{}
+A valid heuristics for this problem is the Manhattan distance between the two symbols positions, which is the minimum distance between them expressed in number of tiles.
 
-\subsection{}
+It is consistent for an unweighted grid since at each move, the traveller can at most decrease by one its remaining cost to the goal while this heuristics is also decreased by one. Formally, for every node $N$ and each successor $P$ of $N$, the consistency states that the estimated cost of reaching the goal from $N$ is no greater than the step cost of getting to $P$ plus the estimated cost of reaching the goal from $P$:
+\[
+ h(N) \le c(N,P) + h(P)
+\]
+In our case, let us define $N = (x_N, y_N)$ by its coordinates on the 2D grid. In the same way, we define $P = (x_P, y_P)$ and the goal $G = (x_G, y_G)$. The inequality is thus rewritten as
+\[
+ \abs{x_N - x_G} + \abs{y_N - y_G} \le 1 + \abs{x_P - x_G} + \abs{y_P - y_G}
+\]
+where $c(N,P) = 1$ since $P$ is the successor of $N$ and the grid is unweighted. Using the trangle inequality, one can rewrite $\abs{x_N - x_G} + \abs{y_N - y_G}$ as 
+\begin{align*}
+   & \abs{x_N - x_P + x_P - x_G} + \abs{y_N - x_P + x_P - y_G} \\
+  \le & \abs{x_N - x_P} + \abs{x_P - x_G} + \abs{y_N - x_P} + \abs{x_P - y_G} \\
+  \le & 1 + \abs{x_P - x_G} + \abs{x_P - y_G}
+\end{align*}
+where $\abs{x_N - x_P} + \abs{x_N - y_P} = 1$ since the traveller moves by one title horizontally or vertically. It has thus been proven that this heuristics is consistent.
 
+If an heuristics is consistent, it is also admissible.
+The Manhattan distance is thus also always lower than or equal to the real number of moves to the goal. Formally, $h(h)$ is admissible if, $\forall n$, $h(n) \le C^*$ where $C^*$ is the lowest path cost among all solutions. Since each action can move only one tile, performing an action can at most reduce $h$ by one. Since the goal can be reached in $C^*$ actions, we thus have $h(n) - C^* \le h(G) = 0$. Therefore, we have $h(n) \le C^*$ forall $n$, and $h$ is admissible.
+
+\subsection{Uniform-cost graph search}
+
+The visited nodes (in light gray) for the uniform-cost graph search are depicted in Figure \ref{fig:maze1}, the number in each tile decribes the order of the visited states. The uniform-cost search finds the solution when it reaches the 25th state.
+
+\begin{figure}[H]
+ \centering
+ \begin{tikzpicture}
+    [
+        box/.style={rectangle,draw=black,thick, minimum size=1cm},
+    ]
+
+    \foreach \x in {1,...,7}{
+        \foreach \y in {1,...,7}
+            \node[box] at (\x,\y){};
+    }
+
+    \node[box,fill=black] at (6,7){};
+    \node[box,fill=black] at (6,6){};
+    \node[box,fill=black] at (5,6){};
+    \node[box,fill=black] at (4,5){};
+    \node[box,fill=black] at (3,5){};
+    \node[box,fill=black] at (2,5){};
+    \node[box,fill=black] at (3,4){};
+    \node[box,fill=black] at (3,3){};
+    \node[box,fill=black] at (3,2){};
+    \node[box,fill=black] at (2,2){};
+    \node[box,fill=black] at (7,4){};
+    \node[box,fill=black] at (7,3){};
+    \node[box,fill=black] at (7,2){};
+    
+    \node[box,fill=lightgray] at (5,7){};
+    \node[box,fill=lightgray] at (4,7){1};
+    \node[box,fill=lightgray] at (3,7){2};
+    \node[box,fill=lightgray] at (4,6){3};
+    \node[box,fill=lightgray] at (2,7){4};
+    \node[box,fill=lightgray] at (3,6){5};
+    \node[box,fill=lightgray] at (1,7){6};
+    \node[box,fill=lightgray] at (2,6){7};
+    \node[box,fill=lightgray] at (1,6){8};
+    \node[box,fill=lightgray] at (1,5){9};
+    \node[box,fill=lightgray] at (1,4){10};
+    \node[box,fill=lightgray] at (1,3){11};
+    \node[box,fill=lightgray] at (2,4){12};
+    \node[box,fill=lightgray] at (1,2){13};
+    \node[box,fill=lightgray] at (2,3){14};
+    \node[box,fill=lightgray] at (1,1){15};
+    \node[box,fill=lightgray] at (2,1){16};
+    \node[box,fill=lightgray] at (3,1){17};
+    \node[box,fill=lightgray] at (4,1){18};
+    \node[box,fill=lightgray] at (4,2){19};
+    \node[box,fill=lightgray] at (5,1){20};
+    \node[box,fill=lightgray] at (4,3){21};
+    \node[box,fill=lightgray] at (5,2){22};
+    \node[box,fill=lightgray] at (6,1){23};
+    \node[box,fill=lightgray] at (4,4){};
+    
+    \node[box] at (5,7){\faMale};
+    \node[box] at (4,4){\euro{}};
+
+ \end{tikzpicture}
+ \caption{Visited nodes (in light gray) for the uniform-cost graph search}
+ \label{fig:maze1}
+\end{figure}
+
+\subsection{A* graph search}
+
+The visited nodes (in light gray) for the A* graph search are depicted in Figure \ref{fig:maze2}. A* finds the solution when it reaches the 21th state.
+
+\begin{figure}[H]
+ \centering
+ \begin{tikzpicture}
+    [
+        box/.style={rectangle,draw=black,thick, minimum size=1cm},
+    ]
+
+    \foreach \x in {1,...,7}{
+        \foreach \y in {1,...,7}
+            \node[box] at (\x,\y){};
+    }
+
+    \node[box,fill=black] at (6,7){};
+    \node[box,fill=black] at (6,6){};
+    \node[box,fill=black] at (5,6){};
+    \node[box,fill=black] at (4,5){};
+    \node[box,fill=black] at (3,5){};
+    \node[box,fill=black] at (2,5){};
+    \node[box,fill=black] at (3,4){};
+    \node[box,fill=black] at (3,3){};
+    \node[box,fill=black] at (3,2){};
+    \node[box,fill=black] at (2,2){};
+    \node[box,fill=black] at (7,4){};
+    \node[box,fill=black] at (7,3){};
+    \node[box,fill=black] at (7,2){};
+    
+    \node[box,fill=lightgray] at (5,7){};
+    \node[box,fill=lightgray] at (4,7){1};
+    \node[box,fill=lightgray] at (3,7){4};
+    \node[box,fill=lightgray] at (4,6){2};
+    \node[box,fill=lightgray] at (2,7){6};
+    \node[box,fill=lightgray] at (3,6){3};
+    \node[box,fill=lightgray] at (1,7){11};
+    \node[box,fill=lightgray] at (2,6){5};
+    \node[box,fill=lightgray] at (1,6){7};
+    \node[box,fill=lightgray] at (1,5){8};
+    \node[box,fill=lightgray] at (1,4){9};
+    \node[box,fill=lightgray] at (1,3){12};
+    \node[box,fill=lightgray] at (2,4){10};
+    \node[box,fill=lightgray] at (1,2){14};
+    \node[box,fill=lightgray] at (2,3){13};
+    \node[box,fill=lightgray] at (1,1){15};
+    \node[box,fill=lightgray] at (2,1){16};
+    \node[box,fill=lightgray] at (3,1){17};
+    \node[box,fill=lightgray] at (4,1){18};
+    \node[box,fill=lightgray] at (4,2){19};
+    \node[box,fill=lightgray] at (4,3){20};
+    \node[box,fill=lightgray] at (4,4){};
+    
+    \node[box] at (5,7){\faMale};
+    \node[box] at (4,4){\euro{}};
+
+ \end{tikzpicture}
+ \caption{Visited nodes (in light gray) for the A* graph search search}
+ \label{fig:maze2}
+\end{figure}
 
 \section{Pacmen problem}
 
