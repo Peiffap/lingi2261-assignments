@@ -23,10 +23,28 @@ class Pacmen(Problem):
 # State class #
 ###############
 class State:
-    def __init__(self, grid):
+    def __init__(self, grid, pac_list=None, food_list=None, npacs=None, nfoods=None):
         self.nbr = len(grid)
         self.nbc = len(grid[0])
         self.grid = grid
+        if pac_list == None:
+            pac_list = []
+            food_list = []
+            nfoods = npacs = 0
+            for i in range(self.nbr):
+                for j in range(self.nbc):
+                    if (grid[i][j] == '$':
+                        pac_list.append((i,j))
+                        npacs += 1
+                    elif (grid[i][j] == '@':
+                        food_list.append((i,j))
+                        nfoods += 1
+        self.pac_list = pac_list
+        self.food_list = food_list
+        self.npacs = npacs
+        self.nfoods = nfoods
+                        
+            
 
     def __str__(self):
         nsharp = self.nbc * 2 + 3
