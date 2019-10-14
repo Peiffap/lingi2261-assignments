@@ -207,6 +207,16 @@ where $d(A,B)$ is the Manhattan distance between the points $A$ and $B$, $x_0$ i
 
 \subsection{Admissible heuristic for k Pacmen}
 
+The generalization for $k$ Pacmen is achieved by successively applying the procedure for one Pacman to all Pacmen. A list of foods $l_{P_i}$ ($i=1,\dots,k$) is associated to each Pacman. The first element of the list is the position of the Pacman. 
+
+For each Pacman $P_i$, one can then remove the closest food tile $f_j$ ($j=1,\dots,n$) from the list of foods, and add this food to the list $l_{P_i}$ of the related Pacman. The closest food tile $f_j$ is computed by using the Manhattan distance between the food tile $f_j$ and the most recent element of the list $l_{P_i}$. 
+
+Applying this procedure allows to create a succesive list of the targets for each Pacman, the path cost for the Pacman $P_i$ is thus the sum of the Manhattan distance between each element in its list $l_{P_i}$. 
+
+Finally, the solution will be found when each Pacman will have achieved his path given by its associated list. Thus, the heuristics is given by the maximum path cost of the Pacmen:
+\[
+ h(n) = \max_{i = 1,\dots,k} \left(\sum_{\alpha=1}^{\mathrm{length}(l_{P_i})} d\left(l_{P_i}[\alpha],l_{P_i}[\alpha-1]\right)\right)
+\]
 
 
 \subsection{Implentation}
