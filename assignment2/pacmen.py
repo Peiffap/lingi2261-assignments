@@ -13,10 +13,23 @@ from search import *
 class Pacmen(Problem):
 
     def successor(self, state):
-        pass
+        ll = []
+        for k in range(state.npacs):
+            l = []
+            (i, j) = state.pac_list[k]
+            if i > 0 and state.grid[i-1][j] != 'x':
+                l.append((i-1,j))
+            if (i < state.nbr - 1) and state.grid[i+1][j] != 'x':
+                l.append((i+1,j))
+            if j > 0 and state.grid[i][j-1] != 'x':
+                l.append((i,j-1))
+            if (j < state.nbc - 1) and state.grid[i][j+1] != 'x':
+                l.append((i,j+1))
+            ll.append(l)
+        
 
     def goal_test(self, state):
-        pass
+        return state.nfoods == 0
 
 
 ###############
@@ -33,10 +46,10 @@ class State:
             nfoods = npacs = 0
             for i in range(self.nbr):
                 for j in range(self.nbc):
-                    if (grid[i][j] == '$':
+                    if grid[i][j] == '$':
                         pac_list.append((i,j))
                         npacs += 1
-                    elif (grid[i][j] == '@':
+                    elif grid[i][j] == '@':
                         food_list.append((i,j))
                         nfoods += 1
         self.pac_list = pac_list
@@ -61,10 +74,21 @@ class State:
         return s
 
     def __eq__(self, other_state):
-        pass
+        for i in range(self.nbr):                                            # Compare each tile one-by-one
+            for j in range(self.nbc):
+                if self.grid[i][j] != other_state.grid[i][j]:
+                    return False
+        return True
 
     def __hash__(self):
-        pass
+        ctr = 0
+        for i in range(self.nbr):
+            for j in range(self.nbc):
+                if self.grid[i][j] == "$":
+                    ctr += (self.nbr * i + j) * 4 + 1
+                elif self.grid[i][j] == "@":
+                    ctr += (self.nbr * i + j) * 4 + 2
+        return ctr
 
 
 
@@ -84,10 +108,7 @@ def readInstanceFile(filename):
 # Heuristic function #
 ######################
 def heuristic(node):
-    h = 0.0
-    # ...
-    # compute an heuristic value
-    # ...
+    h = 0
     return h
 
 
