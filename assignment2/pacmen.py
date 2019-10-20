@@ -17,6 +17,7 @@ class Pacmen(Problem):
         for k in range(state.npacs):
             l = []
             (i, j) = state.pac_list[k]
+            l.append((i,j))
             if i > 0 and state.grid[i-1][j] != 'x':
                 l.append((i-1,j))
             if (i < state.nbr - 1) and state.grid[i+1][j] != 'x':
@@ -26,6 +27,37 @@ class Pacmen(Problem):
             if (j < state.nbc - 1) and state.grid[i][j+1] != 'x':
                 l.append((i,j+1))
             ll.append(l)
+        
+        def rec(ll, new_list, out_list, k):
+            if k == len(ll):
+                out_list.append(new_list.copy())
+                new_list.pop(len(new_list)-1)
+                return
+            for i in range(len(ll[k])):
+                new_list.append(ll[k][i])
+                rec(ll, new_list, out_list, k+1)
+            if k != 0:
+                new_list.pop(len(new_list)-1)
+                
+        out_list = []
+        rec(ll, [], out_list, 0)
+        out_list.pop(0)
+        
+        for (i,j) in state.pac_list:
+            state.grid[i][j] = ' '
+        
+        for k in range(len(out_list)):
+            newgrid = state.grid.copy()
+            nfoods = state.nfoods
+            for (i,j) in out_list[k]:
+                if newgrid[i][j] == '@':
+                    nfoods -= 1
+                newgrid[i][j] = '$'                                        # position and n+1 visited tiles
+            newstate = State(newgrid, out_list[k], npacs=state.npacs, nfoods=nfoods)  # New state with the new initial
+            print(nfoods)
+            yield(0, newstate)  # Yield the action (0 because the paths are costless) and the state to the 'expand' method
+            
+        
         
 
     def goal_test(self, state):
