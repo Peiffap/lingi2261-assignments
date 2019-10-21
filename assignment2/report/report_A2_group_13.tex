@@ -9,6 +9,12 @@
 \usepackage{fontawesome}
 \usepackage{breqn}
 \usepackage{float}
+\usepackage{mathtools}
+\usepackage{amsthm}
+
+\usepackage{mathrsfs}
+
+\newtheorem{theorem}{Theorem}
 
 \usepackage[binary-units=true]{siunitx}
 
@@ -21,37 +27,57 @@
 
 \maketitle
 
-\section{A* versus uniform-cost search}
+\section{A* Versus Uniform-Cost Search}
 
-\subsection{A consistent and admissible heuristics}
+\subsection{A Consistent and Admissible Heuristic}
 
-A valid heuristics for this problem is the Manhattan distance between the two symbols positions, which is the minimum distance between them expressed in number of tiles.
+A valid heuristic for this problem is the Manhattan distance between the two symbols' positions, which is the minimum distance between them expressed in number of tiles.
 
-It is consistent for an unweighted grid since at each move, the traveller can at most decrease by one its remaining cost to the goal while this heuristics is also decreased by one. Formally, for every node $N$ and each successor $P$ of $N$, the consistency states that the estimated cost of reaching the goal from $N$ is no greater than the step cost of getting to $P$ plus the estimated cost of reaching the goal from $P$:
+\begin{theorem}[Consistency of Manhattan distance heuristic]
+	\label{thm:cons}
+	The Manhattan distance is a consistent heuristic for the unweighted grid search problem.
+\end{theorem}
+\begin{proof}
+It is consistent for an unweighted grid since at each move, where the traveller can at most decrease the remaining cost to the goal by one, the heuristic is also decreased by one.
+Formally, for every node $N$ and each successor $P$ of $N$, consistency states that the estimated cost of reaching the goal from $N$ is no greater than the step cost of getting to $P$ plus the estimated cost of reaching the goal from $P$:
 \[
- h(N) \le c(N,P) + h(P)
+ h(N) \le c(N,P) + h(P).
 \]
-In our case, let us define $N = (x_N, y_N)$ by its coordinates on the 2D grid. In the same way, we define $P = (x_P, y_P)$ and the goal $G = (x_G, y_G)$. The inequality is thus rewritten as
+In our case, let us define $N = (x_N, y_N)$ by its coordinates on the 2D grid.
+In the same way, we define $P = (x_P, y_P)$ and the goal $G = (x_G, y_G)$. The inequality can thus be rewritten as
 \[
- \abs{x_N - x_G} + \abs{y_N - y_G} \le 1 + \abs{x_P - x_G} + \abs{y_P - y_G}
+ \abs{x_N - x_G} + \abs{y_N - y_G} \le 1 + \abs{x_P - x_G} + \abs{y_P - y_G},
 \]
-where $c(N,P) = 1$ since $P$ is the successor of $N$ and the grid is unweighted. Using the trangle inequality, one can rewrite $\abs{x_N - x_G} + \abs{y_N - y_G}$ as 
+where $c(N,P) = 1$ since $P$ is the successor of $N$ and the grid is unweighted.
+Using the triangle inequality, one can rewrite $\abs{x_N - x_G} + \abs{y_N - y_G}$ as 
 \begin{align*}
    & \abs{x_N - x_P + x_P - x_G} + \abs{y_N - x_P + x_P - y_G} \\
-  \le & \abs{x_N - x_P} + \abs{x_P - x_G} + \abs{y_N - x_P} + \abs{x_P - y_G} \\
-  \le & 1 + \abs{x_P - x_G} + \abs{x_P - y_G}
+  {}\le{}& \abs{x_N - x_P} + \abs{x_P - x_G} + \abs{y_N - x_P} + \abs{x_P - y_G} \\
+  {}\le{}& 1 + \abs{x_P - x_G} + \abs{x_P - y_G},
 \end{align*}
-where $\abs{x_N - x_P} + \abs{x_N - y_P} = 1$ since the traveller moves by one title horizontally or vertically. It has thus been proven that this heuristics is consistent.
+since $\abs{x_N - x_P} + \abs{x_N - y_P} = 1$ since the traveller moves by one tile either horizontally or vertically.
+It has thus been proven that this heuristic is consistent.
+\end{proof}
+\begin{theorem}[Admissibility of Manhattan distance heuristic]
+	\label{thm:admiss}
+	The Manhattan distance is an admissible heuristic for the weighted grid search problem.
+\end{theorem}
+\begin{proof}
+If a heuristic is consistent, it is also admissible.
+The Manhattan distance is thus also always lower than or equal to the real number of moves to the goal.
+Formally, $h(h)$ is admissible if, for all nodes $n$, $h(n) \le C^*$, where $C^*$ is the lowest path cost among all solutions.
+Since each action can move only one tile, performing an action can at most reduce $h$ by one.
+Since the goal can be reached in $C^*$ actions, we thus have $h(n) - C^* \le h(G) = 0$. Therefore, we have $h(n) \le C^*$ for all $n$, and $h$ is admissible.
+\end{proof}
 
-If an heuristics is consistent, it is also admissible.
-The Manhattan distance is thus also always lower than or equal to the real number of moves to the goal. Formally, $h(h)$ is admissible if, $\forall n$, $h(n) \le C^*$ where $C^*$ is the lowest path cost among all solutions. Since each action can move only one tile, performing an action can at most reduce $h$ by one. Since the goal can be reached in $C^*$ actions, we thus have $h(n) - C^* \le h(G) = 0$. Therefore, we have $h(n) \le C^*$ forall $n$, and $h$ is admissible.
+\subsection{Uniform-Cost Graph Search}
 
-\subsection{Uniform-cost graph search}
-
-The visited nodes (in light gray) for the uniform-cost graph search are depicted in Figure \ref{fig:maze1}, the number in each tile decribes the order of the visited states. The uniform-cost search finds the solution when it reaches the 25th state.
+The visited nodes (in light gray) for the uniform-cost graph search are depicted in Figure~\ref{fig:maze1}, the number in each tile decribes the order of the visited states.
+The uniform-cost search finds the solution when it reaches the 25th state.
 
 \begin{figure}[H]
  \centering
+ \resizebox{0.3\textwidth}{!}{
  \begin{tikzpicture}
     [
         box/.style={rectangle,draw=black,thick, minimum size=1cm},
@@ -105,17 +131,19 @@ The visited nodes (in light gray) for the uniform-cost graph search are depicted
     \node[box] at (5,7){\faMale};
     \node[box] at (4,4){\euro{}};
 
- \end{tikzpicture}
- \caption{Visited nodes (in light gray) for the uniform-cost graph search}
+ \end{tikzpicture}}
+ \caption{Visited nodes (in light gray) for the uniform-cost graph search.}
  \label{fig:maze1}
 \end{figure}
 
-\subsection{A* graph search}
+\subsection{A* Graph Search}
 
-The visited nodes (in light gray) for the A* graph search are depicted in Figure \ref{fig:maze2}. A* finds the solution when it reaches the 21th state.
+The visited nodes (in light gray) for the A* graph search are depicted in Figure~\ref{fig:maze2}.
+A* finds the solution when it reaches the 22nd state.
 
 \begin{figure}[H]
  \centering
+ \resizebox{0.3\textwidth}{!}{
  \begin{tikzpicture}
     [
         box/.style={rectangle,draw=black,thick, minimum size=1cm},
@@ -166,60 +194,85 @@ The visited nodes (in light gray) for the A* graph search are depicted in Figure
     \node[box] at (5,7){\faMale};
     \node[box] at (4,4){\euro{}};
 
- \end{tikzpicture}
- \caption{Visited nodes (in light gray) for the A* graph search search}
+ \end{tikzpicture}}
+ \caption{Visited nodes (in light gray) for the A* graph search search.}
  \label{fig:maze2}
 \end{figure}
 
-\section{Pacmen problem}
-
+\section{Pacmen Problem}
 \subsection{Model}
-
-The states are described by a grid detailing the content of the different tiles: a wall, a Pacman, some food, or an empty tile.
+\subsubsection{States}
+The states are described by a grid detailing the content of the different tiles: a wall or border tile, a Pacman, some food, or an empty tile.
 %the content description of the maze. A \@ in a cell represents food, a \$ is a Pacman and a x is a wall. The other variables of the state are \py{nbr} (the number of rows), \py{nbc} (the number of columns), \py{pac_list} (the positions of the Pacmen) and \py{food_list} (the positions of the food).
-The initial state can be any state, provided that it has at least one tile filled with food, and one tile filled with a Pacman. 
+\subsubsection{Initial States}
+The initial state can be any state, provided that it has at least one tile filled with food, and one tile filled with a Pacman (and a border going around the grid).
 
-A simple formulation defines the actions as a list of movements (Left, Right, Up, Down) for each Pacman on the board. 
-This set of actions is described by at least one movement of one Pacman (with at most one movement per Pacman), different subsets of actions are possible depending on where the Pacmen are (e.g. blocked by the edges or the walls). 
-Given a state and action, the transition model returns the resulting state.
+\subsubsection{Transition Model}
+A simple formulation defines the actions as a list of movements (Left, Right, Up, Down) for each Pacman on the board.
+This set of actions is described by at least one movement of one Pacman (with at most one movement per Pacman).
+Different subsets of actions are possible depending on where the Pacmen are (e.g. blocked by the borders or the walls). 
+Given a state and action, the transition model returns the resulting state, that is, the same grid as before, except that the Pacmen which received an action command have been moved accordingly, possibly removing food on the tile where they arrived if there was any and filling up empty tiles otherwise.
 
-The goal test checks whether there is no food on the board, which means that there is no cell in the grid filled with food. A counter of remaining food cells is appreciated in order to reduce the computation time of the goal test.
+\subsubsection{Goal Test}
+The goal test checks whether there is no food on the board, which means that there is no cell in the grid filled with food.
+A counter of remaining food cells is used in order to reduce the computation time of the goal test.
 
-Since each step costs 1, the path cost function is the number of steps in the path: $g(n) = d_n$ where $d_n$ is the depth of the node $n$.
-
-
-\subsection{Maximum branching factor}
-
-Since each Pacman can move up to four positions, $k$ Pacmen can move up to $4^k$ positions. The maximum branching factor is thus $4^k$. This exponential branching factor can lead to complex trees if the number of Pacmen becomes very high.
+\subsubsection{Path Cost Function}
+Since each step has unitary cost, the path cost function is the number of steps in the path: $g(n) = d_n$ where $d_n$ is the depth of the node $n$.
 
 
-\subsection{Admissible heuristic for one Pacman}
+\subsection{Maximum Branching Factor}
+Since each Pacman can move up to four positions, $k$ Pacmen can move to $4^k$ different states.
+The maximum branching factor is thus $4^k$.
+This exponential branching factor can lead to complex trees if the number of Pacmen is very high.
 
-Sum of Manhattan distances between Pacman - nearest food - nearest food to previous food - ... 
 
-Heuristics for state $N$:
+\subsection{Admissible Heuristic For One Pacman}
+%Sum of Manhattan distances between Pacman - nearest food - nearest food to previous food - ...
+\subsubsection{Heuristic}
+The heuristic for a single Pacman is as follows: for state $N$,
 \[
- h(N) = \sum_{i=1}^n d(x_{i-1},x_i)
+ h(N) = \sum_{i=1}^n d(x_{i-1},x_i),
 \]
-where $d(A,B)$ is the Manhattan distance between the points $A$ and $B$, $x_0$ is the position of the Pacman and $x_i$ is the position (which has not yet been selected) of the food closest to $x_{i-1}$.
-
-
-
-\subsection{Admissible heuristic for k Pacmen}
-
-The generalization for $k$ Pacmen is achieved by successively applying the procedure for one Pacman to all Pacmen. A list of foods $l_{P_i}$ ($i=1,\dots,k$) is associated to each Pacman. The first element of the list is the position of the Pacman. 
-
-For each Pacman $P_i$, one can then remove the closest food tile $f_j$ ($j=1,\dots,n$) from the list of foods, and add this food to the list $l_{P_i}$ of the related Pacman. The closest food tile $f_j$ is computed by using the Manhattan distance between the food tile $f_j$ and the most recent element of the list $l_{P_i}$. 
-
-Applying this procedure allows to create a succesive list of the targets for each Pacman, the path cost for the Pacman $P_i$ is thus the sum of the Manhattan distance between each element in its list $l_{P_i}$. 
-
-Finally, the solution will be found when each Pacman will have achieved his path given by its associated list. Thus, the heuristics is given by the maximum path cost of the Pacmen:
+where $d(A,B)$ is the Manhattan distance between the points $A$ and $B$, $x_0$ is the position of the Pacman and $x_i$ (for \(i = 1, \ldots, n\)) is the position (which has not yet been selected) of the food closest to $x_{i-1}$.
+Formally, if \(\mathscr{F}_i\) is the set of  unvisited food tiles when looking for \(x_i\), then
 \[
- h(n) = \max_{i = 1,\dots,k} \left(\sum_{\alpha=1}^{\mathrm{length}(l_{P_i})} d\left(l_{P_i}[\alpha],l_{P_i}[\alpha-1]\right)\right)
+x_{i} = \min_{j \in \mathscr{F}_i} d(x_{i-1}, x_j), \quad \forall i = 1, \ldots, n.
 \]
 
+\subsubsection{Admissibility}
+This heuristic is admissible since it uses the Manhattan distance, which is always less than or equal to the true distance, as shown in Theorem~\ref{thm:admiss}.
 
-\subsection{Implentation}
+\subsubsection{Complexity}
+As with any A* search algorithm, the complexity is exponential in the depth \(d\) of the shallowest goal state, where the base is the effective branching factor \(b^\varepsilon\) (where \(\varepsilon\) is the relative error of the heuristic).
+This can be shown by observing that the number of explored nodes is \(\sum_{i=1}^d b^{\varepsilon i} \in \mathcal{O}(b^{\varepsilon d})\).
+
+\subsection{Admissible Heuristic For \(k\) Pacmen}
+\subsubsection{Heuristic}
+The generalization for $k$ Pacmen is achieved by successively applying the procedure for one Pacman to all Pacmen.
+A list of foods $\ell_{P_i}$ ($i=1,\dots,k$) is associated to each Pacman.
+The first element of the list is the position of the Pacman.
+We also create a list of all food tiles on the board, \(\mathscr{L}\), which we use for bookkeeping later on.
+
+For each Pacman $P_i$, one can then remove the closest food tile $f_j$ ($j=1,\dots,n$) from the list of foods \(\mathscr{L}\), and add this food to the list $\ell_{P_i}$ of the related Pacman.
+The closest food tile $f_j$ is computed by using the Manhattan distance between the food tile $f_j$ and the most recent element of the list $\ell_{P_i}$.
+
+Applying this procedure allows to create a successive list of targets for each Pacman; the heuristic \(h_i\) for Pacman $P_i$ is thus the sum of the Manhattan distances between each element in its list $\ell_{P_i}$.
+
+Finally, the solution will be found when each Pacman has achieved its path given by its associated list.
+Thus, the heuristic is given by the maximum path cost of the Pacmen:
+\begin{align*}
+ h(n) &= \max_{i = 1,\ldots,k} h_i(n) \\
+ &= \max_{i=1,\ldots, k} \left(\sum_{\alpha=1}^{\mathrm{length}(\ell_{P_i})} d\left(\ell_{P_i}[\alpha],\ell_{P_i}[\alpha-1]\right)\right).
+\end{align*}
+
+\subsubsection{Admissibility}
+Since all individual heuristics \(h_i\) are admissible (by the same argument as above), one can deduce that their maximum must also be admissible.
+
+\subsubsection{Complexity}
+By the same reasoning as before, the complexity is exponential, in \(\mathcal{O}(b^{\varepsilon d})\), where \(d\) is the depth of the shallowest goal state, \(\varepsilon\) is the relative error of the heuristic and \(b^\varepsilon\) is the effective branching factor.
+
+\subsection{Implementation}
 
 
 
