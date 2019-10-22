@@ -18,13 +18,13 @@ class Pacmen(Problem):
             l = []
             (i, j) = state.pac_list[k]
             l.append((i,j))
-            if i > 0 and state.grid[i-1][j] != 'x' and state.grid[i-1][j] != '$':
+            if i > 0 and state.grid[i-1][j] != 'x':
                 l.append((i-1,j))
-            if (i < state.nbr - 1) and state.grid[i+1][j] != 'x' and state.grid[i+1][j] != '$':
+            if (i < state.nbr - 1) and state.grid[i+1][j] != 'x':
                 l.append((i+1,j))
-            if j > 0 and state.grid[i][j-1] != 'x' and state.grid[i][j-1] != '$':
+            if j > 0 and state.grid[i][j-1] != 'x':
                 l.append((i,j-1))
-            if (j < state.nbc - 1) and state.grid[i][j+1] != 'x' and state.grid[i][j+1] != '$':
+            if (j < state.nbc - 1) and state.grid[i][j+1] != 'x':
                 l.append((i,j+1))
             ll.append(l)
         
@@ -40,24 +40,30 @@ class Pacmen(Problem):
                 new_list.pop(-1)
                 
         out_list = []
-        print(ll)
         rec(ll, [], out_list, 0)
-        print(out_list)
-        print("\n")
         out_list.pop(0)
         
-        for (i,j) in state.pac_list:
-            state.grid[i][j] = ' '
+        def my_copy_list(state):
+            newgrid = []
+            for i in range(state.nbr):
+                newgrid.append([" "] * state.nbc)
+                for j in range(state.nbc):
+                    newgrid[i][j] = state.grid[i][j]
+            return newgrid
         
         for k in range(len(out_list)):
-            newgrid = state.grid.copy()
+            if len(out_list[k]) != len(set(out_list[k])):
+                continue
+            newgrid = my_copy_list(state)
             nfoods = state.nfoods
-            for (i,j) in out_list[k]:
+            for (i,j) in state.pac_list:   # Remove the previous pacmen
+                newgrid[i][j] = ' '
+            for (i,j) in out_list[k]:      # Add the new pacmen
                 if newgrid[i][j] == '@':
                     nfoods -= 1
-                newgrid[i][j] = '$'                                      # position and n+1 visited tiles
-            newstate = State(newgrid, out_list[k], npacs=state.npacs, nfoods=nfoods)  # New state with the new initial
-            yield(0, newstate)  # Yield the action (0 because the paths are costless) and the state to the 'expand' method
+                newgrid[i][j] = '$'
+            newstate = State(newgrid, out_list[k], npacs=state.npacs, nfoods=nfoods)  # New state
+            yield(0, newstate)             # Yield the action (0 because the paths are costless) and the state to the 'expand' method
 
 
     def goal_test(self, state):
@@ -147,7 +153,7 @@ def heuristic(node):
 #####################
 # Launch the search #
 #####################
-grid_init = readInstanceFile("instances/i01")# readInstanceFile(sys.argv[1])
+grid_init = readInstanceFile(sys.argv[1])
 init_state = State(grid_init)
 print(init_state)
 
