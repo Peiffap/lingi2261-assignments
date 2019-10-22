@@ -18,29 +18,32 @@ class Pacmen(Problem):
             l = []
             (i, j) = state.pac_list[k]
             l.append((i,j))
-            if i > 0 and state.grid[i-1][j] != 'x':
+            if i > 0 and state.grid[i-1][j] != 'x' and state.grid[i-1][j] != '$':
                 l.append((i-1,j))
-            if (i < state.nbr - 1) and state.grid[i+1][j] != 'x':
+            if (i < state.nbr - 1) and state.grid[i+1][j] != 'x' and state.grid[i+1][j] != '$':
                 l.append((i+1,j))
-            if j > 0 and state.grid[i][j-1] != 'x':
+            if j > 0 and state.grid[i][j-1] != 'x' and state.grid[i][j-1] != '$':
                 l.append((i,j-1))
-            if (j < state.nbc - 1) and state.grid[i][j+1] != 'x':
+            if (j < state.nbc - 1) and state.grid[i][j+1] != 'x' and state.grid[i][j+1] != '$':
                 l.append((i,j+1))
             ll.append(l)
         
         def rec(ll, new_list, out_list, k):
             if k == len(ll):
                 out_list.append(new_list.copy())
-                new_list.pop(len(new_list)-1)
+                new_list.pop(-1)
                 return
             for i in range(len(ll[k])):
                 new_list.append(ll[k][i])
                 rec(ll, new_list, out_list, k+1)
             if k != 0:
-                new_list.pop(len(new_list)-1)
+                new_list.pop(-1)
                 
         out_list = []
+        print(ll)
         rec(ll, [], out_list, 0)
+        print(out_list)
+        print("\n")
         out_list.pop(0)
         
         for (i,j) in state.pac_list:
@@ -52,13 +55,10 @@ class Pacmen(Problem):
             for (i,j) in out_list[k]:
                 if newgrid[i][j] == '@':
                     nfoods -= 1
-                newgrid[i][j] = '$'                                        # position and n+1 visited tiles
+                newgrid[i][j] = '$'                                      # position and n+1 visited tiles
             newstate = State(newgrid, out_list[k], npacs=state.npacs, nfoods=nfoods)  # New state with the new initial
-            print(nfoods)
             yield(0, newstate)  # Yield the action (0 because the paths are costless) and the state to the 'expand' method
-            
-        
-        
+
 
     def goal_test(self, state):
         return state.nfoods == 0
@@ -147,8 +147,9 @@ def heuristic(node):
 #####################
 # Launch the search #
 #####################
-grid_init = readInstanceFile(sys.argv[1])
+grid_init = readInstanceFile("instances/i01")# readInstanceFile(sys.argv[1])
 init_state = State(grid_init)
+print(init_state)
 
 problem = Pacmen(init_state)
 
@@ -165,5 +166,5 @@ for n in path:
     print(n.state)  # assuming that the __str__ function of state outputs the correct format
     print()
 
-print("nb nodes explored = ",nb)
+print("nb nodes explored = ",nbExploredNodes)
 print("time : " + str(endTime - startTime))
