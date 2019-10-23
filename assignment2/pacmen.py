@@ -62,24 +62,6 @@ class State:
         self.nbr = len(grid)
         self.nbc = len(grid[0])
         self.grid = grid
-        """
-        if pac_list == None:
-            pac_list = []
-            for i in range(self.nbr):
-                for j in range(self.nbc):
-                    if grid[i][j] == '$':
-                        pac_list.append((i,j))
-        if food_list == None:
-            food_list = []
-            for i in range(self.nbr):
-                for j in range(self.nbc):
-                    if grid[i][j] == '@':
-                        food_list.append((i,j))     
-        self.pac_list = pac_list
-        self.food_list = food_list
-        self.npacs = len(pac_list)
-        self.nfoods = len(food_list)
-        """
         
     def __str__(self):
         nsharp = self.nbc * 2 + 3
@@ -119,43 +101,6 @@ def readInstanceFile(filename):
 ######################
 # Heuristic function #
 ######################
-"""
-def heuristic(node):
-    def manhattan(pos1, pos2):
-        return abs(pos1[0]-pos2[0])+abs(pos1[1]-pos2[1])
-    
-    (foods, pacmen) = node.state.food_list.copy(), node.state.pac_list.copy()
-    
-    l = [0]*len(pacmen)
-    
-    def closest_food(pac):
-        tmp = manhattan(pac,foods[0])
-        closest = tmp
-        best = foods[0]
-        for f in foods[1:]:
-            candidate = manhattan(pac,f)
-            if candidate < closest:
-                closest = candidate
-                best = f
-        return best, closest
-    
-    def closest_pair():
-        minimum = [0]*len(pacmen)
-        bestfood = [foods[0]]*len(pacmen)
-        for i in range(len(pacmen)):
-            pac = pacmen[i]
-            bestfood[i], minimum[i] = closest_food(pac)
-        
-        besti = minimum.index(min(minimum))
-        return bestfood[besti], minimum[besti], besti
-            
-    while foods:
-        b, m, i = closest_pair()
-        l[i] += m
-        foods.remove(b)
-            
-    return sum(l)/len(l)
-"""
 
 def heur(node):
     def manhattan(pos1, pos2):

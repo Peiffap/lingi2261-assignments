@@ -1,6 +1,6 @@
 \documentclass[journal]{IEEEtran}
 \usepackage[utf8]{inputenc}
-%\usepackage{minted}
+\usepackage{minted}
 \usepackage{booktabs}
 \usepackage{color}
 \usepackage{commath}
@@ -18,7 +18,7 @@
 
 \usepackage[binary-units=true]{siunitx}
 
-%\newcommand{\py}[1]{\mintinline{python}{#1}}
+\newcommand{\py}[1]{\mintinline{python}{#1}}
 
 \title{Artificial Intelligence (\texttt{LINGI2261}) \\ Assignment 2 --- Group 13}
 \author{Martin Braquet, Gilles Peiffer}
@@ -288,7 +288,7 @@ Since all individual heuristics \(h_i\) are admissible (by the same argument as 
 By the same reasoning as before, the complexity is exponential, in \(\mathcal{O}(b^{\varepsilon d})\), where \(d\) is the depth of the shallowest goal state, \(\varepsilon\) is the relative error of the heuristic and \(b^\varepsilon\) is the effective branching factor.
 
 \subsection{Implementation}
-The program is uploaded on INGInious.
+The methods implemented in \py{Problem} class are \py{sucessor} and \py{goal_test}. The methods implemented in \py{State} class are \py{__eq__} and \py{__hash__}. The \py{heuristics} method is also implemented to assess the heuristics of one node.
 
 \subsection{Experiment}
 \begin{table}[!hbtp]
@@ -324,6 +324,6 @@ The reason for this is that our heuristic is quite complicated to compute, and i
 The reason why A* consistently explores less nodes is because BFS can simply be seen as A* with a constant heuristic, which is not as good as the heuristic we use.
 
 \subsection{Program submission}
-The program is uploaded on INGInious.
+The program is uploaded on INGInious and passes 15/15 tests.
 
 \end{document}
