@@ -77,7 +77,7 @@ The uniform-cost search finds the solution when it reaches the 25th state.
 
 \begin{figure}[H]
  \centering
- \resizebox{0.3\textwidth}{!}{
+ \resizebox{0.34\textwidth}{!}{
  \begin{tikzpicture}
     [
         box/.style={rectangle,draw=black,thick, minimum size=1cm},
@@ -87,6 +87,14 @@ The uniform-cost search finds the solution when it reaches the 25th state.
         \foreach \y in {1,...,7}
             \node[box] at (\x,\y){};
     }
+	\foreach \x in {0,...,6}{
+		\node at (0, \x+1){\scriptsize \x};
+		\node at (\x+1,0){\scriptsize \x};
+	}
+	
+	\node at (-1, 4){\(j\)};
+	\node at (4, -1){\(i\)};
+
 
     \node[box,fill=black] at (6,7){};
     \node[box,fill=black] at (6,6){};
@@ -143,7 +151,7 @@ A* finds the solution when it reaches the 22nd state.
 
 \begin{figure}[H]
  \centering
- \resizebox{0.3\textwidth}{!}{
+ \resizebox{0.34\textwidth}{!}{
  \begin{tikzpicture}
     [
         box/.style={rectangle,draw=black,thick, minimum size=1cm},
@@ -153,6 +161,13 @@ A* finds the solution when it reaches the 22nd state.
         \foreach \y in {1,...,7}
             \node[box] at (\x,\y){};
     }
+    \foreach \x in {0,...,6}{
+        \node at (0, \x+1){\scriptsize \x};
+        \node at (\x+1,0){\scriptsize \x};
+    }
+
+    \node at (-1, 4){\(j\)};
+    \node at (4, -1){\(i\)};
 
     \node[box,fill=black] at (6,7){};
     \node[box,fill=black] at (6,6){};
@@ -208,9 +223,9 @@ The states are described by a grid detailing the content of the different tiles:
 The initial state can be any state, provided that it has at least one tile filled with food, and one tile filled with a Pacman (and a border going around the grid).
 
 \subsubsection{Transition Model}
-A simple formulation defines the actions as a list of movements (Left, Right, Up, Down) for each Pacman on the board.
-This set of actions is described by at least one movement of one Pacman (with at most one movement per Pacman).
-Different subsets of actions are possible depending on where the Pacmen are (e.g. blocked by the borders or the walls). 
+A simple formulation defines the actions as a list of movements (Left, Right, Up, Down, Stay) for each Pacman on the board.
+Two additional constraints exist: at least one Pacman must move (e.g. have an action which is not ``Stay'') at each turn, and a given Pacman can only make one move at each turn.
+Different subsets of actions are possible depending on where the Pacmen are (e.g. blocked by the borders, the walls or each other). 
 Given a state and action, the transition model returns the resulting state, that is, the same grid as before, except that the Pacmen which received an action command have been moved accordingly, possibly removing food on the tile where they arrived if there was any and filling up empty tiles otherwise.
 
 \subsubsection{Goal Test}
@@ -222,8 +237,8 @@ Since each step has unitary cost, the path cost function is the number of steps 
 
 
 \subsection{Maximum Branching Factor}
-Since each Pacman can move up to four positions, $k$ Pacmen can move to $4^k$ different states.
-The maximum branching factor is thus $4^k$.
+Since each Pacman can move up to four positions or stay where it is, $k$ Pacmen can move to $5^k-1$ different states (since at least one Pacman has to move and the case where no Pacmen move is thus not possible).
+The maximum branching factor is thus $5^k-1$.
 This exponential branching factor can lead to complex trees if the number of Pacmen is very high.
 
 
@@ -273,15 +288,42 @@ Since all individual heuristics \(h_i\) are admissible (by the same argument as 
 By the same reasoning as before, the complexity is exponential, in \(\mathcal{O}(b^{\varepsilon d})\), where \(d\) is the depth of the shallowest goal state, \(\varepsilon\) is the relative error of the heuristic and \(b^\varepsilon\) is the effective branching factor.
 
 \subsection{Implementation}
-
-
+The program is uploaded on INGInious.
 
 \subsection{Experiment}
+\begin{table}[!hbtp]
+	\centering
+	\begin{tabular}{c@{\hspace{0.7cm}}ccc|ccc} 
+		\toprule
+		Inst. & \multicolumn{3}{c}{A*} & \multicolumn{3}{c}{BFS} \\
+		\midrule
+		1 & 0.00847 & 9 & 12  & 0.00866 & 9 & 67 \\
+		2 & 0.0182 & 19 & 53 & 0.445 & 19 & 1364 \\
+		3 & 0.0298 & 25 & 109 & 0.0179  & 25 & 171 \\
+		4 & 0.0197 & 13 & 50 & 0.00935 & 13 & 126 \\
+		5 & 0.00970 & 13 & 46 & 0.0100 & 13 & 81 \\
+		6 & 0.0317 & 25 & 91 & 0.00974 & 25 & 160 \\
+		7 & 0.0444 & 25 & 175 & 0.0225 & 25 & 238 \\
+		8 & 0.102 & 33 & 298 & 0.0462 & 33 & 466 \\
+		9 & 0.725 & 13 & 1568  & 1.08 & 13 & 11224 \\
+		10 & 4.26 & 9 & 1380 & 58.8 & 8 & 284973 \\
+		\bottomrule \\
+	\end{tabular}
+	\caption{Comparison of execution times for various algorithms.
+		The first column contains the execution times, given with 3 significant figures in seconds; the second contains the number of moves in the solution and the third contains the number of explored nodes.}
+	\label{time1}
+\end{table}
 
+ The computation times for the two algorithms on each of the 10 instances are detailed in Table~\ref{time1}.\footnote{Experiments were run on an Early 2015 MacBook Pro, running macOS Sierra 10.12.6, using a \SI{2.9}{\giga\hertz} Intel Core i5 processor, with \SI{8}{\giga\byte} of \SI{1867}{\mega\hertz} DDR3 RAM and an Intel Iris Graphics 6100 GPU.} 
 
+As we can see, the number of nodes explored using A* search is lower than the number of nodes explored with breadth-first search for all ten instances.
+
+Computation times are not always strictly lower for A* search, though the difference is quite small (instances 3, 4, 6, 7 and 8 took slightly longer for A* search than for BFS).
+
+The reason for this is that our heuristic is quite complicated to compute, and in cases where BFS finds a solution relatively quickly, the heuristic does not improve the number of explored nodes by much (but does require a lot more computation effort).
+The reason why A* consistently explores less nodes is because BFS can simply be seen as A* with heuristic \(h=0\), which is not as good as the heuristic we use.
 
 \subsection{Program submission}
-
 The program is uploaded on INGInious.
 
 \end{document}
