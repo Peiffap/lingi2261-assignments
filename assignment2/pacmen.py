@@ -176,7 +176,7 @@ def heuristic(node):
         food_array = np.delete(food_array, i, 0)
         '''
         if ((k+1) % state.npacs == 0):
-            pac_array_3D = np.dstack([np.copy(state.pac_array)]*(state.nfoods-(k+1))
+            pac_array_3D = np.dstack([np.copy(state.pac_array)]*(state.nfoods-(k+1)))
         else:
             pac_array_3D = np.delete(pac_array_3D, i, 0)'''
         if (k == state.nfoods - 1):
@@ -186,17 +186,22 @@ def heuristic(node):
         
     return max(h)
 
+def zero(node):
+    return 0
+
 
 #####################
 # Launch the search #
 #####################
 grid_init = readInstanceFile(sys.argv[1])
+#grid_init = readInstanceFile("instances/i01")
 init_state = State(grid_init)
 
 problem = Pacmen(init_state)
 
 startTime = time.perf_counter()
 node, nbExploredNodes = astar_graph_search(problem,heuristic)
+#node, nbExploredNodes = best_first_graph_search(problem)
 endTime = time.perf_counter()
 
 # example of print
