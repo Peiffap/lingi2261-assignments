@@ -63,9 +63,9 @@ class SquadroState(State):
     cp.winner = self.winner
     cp.timeout_player = self.timeout_player
     cp.invalid_player = self.invalid_player
-    cp.cur_pos = self.cur_pos.copy()
-    cp.returning = self.returning.copy()
-    cp.finished = self.finished.copy()
+    cp.cur_pos = deepcopy(self.cur_pos)
+    cp.returning = deepcopy(self.returning)
+    cp.finished = deepcopy(self.finished)
     return cp
 
 

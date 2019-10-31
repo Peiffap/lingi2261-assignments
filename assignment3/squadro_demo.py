@@ -186,12 +186,6 @@ def main(agent_0, agent_1, time_out, sleep_time):
 
 
 if __name__ == "__main__":
-	# try:
-	# 	opts, args = getopt.getopt(argv,"hi:o:",["ifile=","ofile="])
-	# except getopt.GetoptError:
-	# 	print 'squadro.py [-ai0 <agent_name>] [-ai1 <agent_name>] [-t <int>] [-s <int>]'
-	# 	sys.exit(2)
-
 	parser = argparse.ArgumentParser()
 	parser.add_argument("-ai0", help="path to the ai that will play as player 0")
 	parser.add_argument("-ai1", help="path to the ai that will play as player 1")
