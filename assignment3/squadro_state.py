@@ -1,3 +1,4 @@
+import minimax
 import random
 from state import State
 from copy import deepcopy
@@ -24,6 +25,10 @@ class SquadroState(State):
     # Have the pawns completed their journey ?
     self.finished = [[False, False, False, False, False], [False, False, False, False, False]]
 
+
+  def __eq__(self, other):
+    return self.cur_player == other.cur_player and self.cur_pos == other.cur_pos
+
   
   def set_timed_out(self, player):
     self.timeout_player = player
@@ -36,16 +41,38 @@ class SquadroState(State):
 
 
   """
-  Returns the position of the requested pawn
+  Returns the position of the requested pawn ((x, y) position on the board (i.e. in multiples of 100))
   """
   def get_pawn_position(self, player, pawn):
     return self.cur_pos[player][pawn]
+
+
+  """
+  Returns the number of tiles the pawn has advanced (i.e. {0, ..., 12})
+  """
+  def get_pawn_advancement(self, player, pawn):
+    if self.is_pawn_finished(player, pawn):
+      return 12
+    elif self.is_pawn_returning(player, pawn):
+      if player == 0:
+        nb = self.get_pawn_position(player, pawn)[1] / 100
+      else:
+        nb = self.get_pawn_position(player, pawn)[0] / 100
+      return int(6 + nb)
+    else:
+      if player == 0:
+        nb = (600 - self.get_pawn_position(player, pawn)[1]) / 100
+      else:
+        nb = (600 - self.get_pawn_position(player, pawn)[0]) / 100
+      return int(nb)
+
 
   """
   Returns whether the pawn is on its return journey or not
   """
   def is_pawn_returning(self, player, pawn):
     return self.returning[player][pawn]
+
 
   """
   Returns whether the pawn has finished its journey
@@ -70,7 +97,7 @@ class SquadroState(State):
 
 
   """
-  Return true if and only if the game is over.
+  Return true if and only if the game is over (game ended, player timed out or made invalid move).
   """
   def game_over(self):
     if self.winner != None:
@@ -78,6 +105,9 @@ class SquadroState(State):
     return self.game_over_check()
   
 
+  """
+  Checks if a player succeeded to win the game, i.e. move 4 pawns to the other side and back again.
+  """
   def game_over_check(self):
     if sum(self.finished[0]) >= 4:
       self.winner = 0

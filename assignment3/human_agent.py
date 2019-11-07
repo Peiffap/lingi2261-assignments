@@ -32,4 +32,4 @@ class MyAgent(Agent):
 		return action
   
 	def get_name(self):
-		return 'human_agent'
+		return "human_agent"
