@@ -6,6 +6,7 @@
 \usepackage{commath}
 \usepackage{float}
 \usepackage{mathtools}
+\usepackage{color}
 \usepackage{amsthm}
 \usepackage{parskip}
 
@@ -25,6 +26,8 @@
 
 \subsection{MiniMax algorithm}
 
+\textcolor{red}{Verification + add details...}
+
 \begin{figure}[H]
  \centering
  \includegraphics[width=\textwidth]{MiniMax.png}
@@ -34,6 +37,8 @@
 
 
 \subsection{Alpha-Beta algorithm (left to right)}
+
+\textcolor{red}{Verification + add details...}
 
 \begin{figure}[H]
  \centering
@@ -45,6 +50,8 @@
 
 \subsection{Alpha-Beta algorithm (right to left)}
 
+\textcolor{red}{Verification + add details...}
+
 \begin{figure}[H]
  \centering
  \includegraphics[width=\textwidth]{Alphabeta_reverse.png}
@@ -54,6 +61,8 @@
 
 
 \subsection{Alpha-Beta algorithm (ordered)}
+
+\textcolor{red}{Verification + add details...}
 
 \begin{figure}[H]
  \centering
@@ -119,6 +128,23 @@ The cut-off function, which reflects the moment when we need to stop the search,
  \item \py{time() - self.start_time > self.max_time}: the time elapsed during this search has exceeded the maximum allowed period for this search.
 \end{enumerate}
 
+\subsection{Evaluation function}
+
+In the figure presented in the instructions, the yellow basic agent will play the pawn number 3 since it will lead to its highest evaluation: the sum of each pawn’s advancements. However, it is clear that it is not his best move since moving the pawn number 4 would give him the victory. A stronger heuristics has thus to take into account that a player wins if only four of his pawns come back home. In practice, we reduce this progress evaluation to only the four more advanced pawns, bringing a more cogent representation of the state.
+
+\textcolor{red}{Are there any other weak points of the evaluation functions of your basic agents?}
+
+In addition to the sum of each pawn’s advancements, the following features are detailed below.
+
+\begin{itemize}
+ \item \textcolor{red}{To complete}
+ \item 
+ \item 
+\end{itemize}
+
+
+
+\subsection{Contest}
 
 \bibliographystyle{unsrt}
 \bibliography{bib.bib}

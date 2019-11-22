@@ -9,7 +9,7 @@ class MyAgent(AlphaBetaAgent):
 
   def __init__(self):
       self.current_depth = 0
-      self.max_depth = 7
+      self.max_depth = 9
       self.max_time = 0
       self.start_time = 0
       self.total_time = 0
@@ -68,4 +68,11 @@ class MyAgent(AlphaBetaAgent):
   representing the utility function of the board.
   """
   def evaluate(self, state):
-      return sum(state.get_pawn_advancement(self.id, pawn) - state.get_pawn_advancement(1 - self.id, pawn) for pawn in [0, 1, 2, 3, 4])
+      l1 = []
+      l2 = []
+      for pawn in [0, 1, 2, 3, 4]:
+          l1.append(state.get_pawn_advancement(self.id, pawn))
+          l2.append(state.get_pawn_advancement(1 - self.id, pawn))
+      l1.sort()
+      l2.sort()
+      return sum(l1[1:]) - sum(l2[1:])
