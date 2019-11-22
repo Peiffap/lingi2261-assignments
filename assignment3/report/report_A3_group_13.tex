@@ -7,6 +7,7 @@
 \usepackage{float}
 \usepackage{mathtools}
 \usepackage{amsthm}
+\usepackage{parskip}
 
 
 \usepackage[binary-units=true]{siunitx}
@@ -76,6 +77,17 @@ The condition \py{v <= alpha} and \py{v >= beta} is now given by \py{Best[Player
  \caption{Shallow pruning in three-player game tree \cite{multiplayer}}
  \label{fig:multiplayer}
 \end{figure}
+
+
+\section{Squadro}
+
+\subsection{Comparison of two evaluation functions}
+
+We expect that the new evaluation will work better since it takes into account the opponent, and it will thus prevent the opponent to win for example, by killing his pawns. The old agent is not able to deliberately kill the opponent, consequently decreasing his chances to win.
+
+However, the yellow player still always wins in the four possible starting configurations (which color, who plays first) because he begins with the best paws at the center, progressing by steps of three. The yellow player rapidly puts these paws on the other side, which are then a barrier for the progress of the opponent.
+Thus the new basic agent is not good enough to overcome the yellow advantage. 
+
 
 \bibliographystyle{unsrt}
 \bibliography{bib.bib}

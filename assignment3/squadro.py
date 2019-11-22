@@ -42,6 +42,8 @@ def main(agent_0, agent_1, time_out, first):
 			action, exe_time = get_action_timed(agents[cur_player], cur_state.copy(), last_action, times_left[cur_player])
 			timer_stop[0] = True
 			times_left[cur_player] -= exe_time
+			
+			sleep(1)
 
 			if cur_state.is_action_valid(action):
 				cur_state.apply_action(action)

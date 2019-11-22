@@ -2,12 +2,12 @@ from agent import AlphaBetaAgent
 import minimax
 
 """
-Basic agent
+Basic agent 2
 """
 class MyAgent(AlphaBetaAgent):
 
   """
-  This is the basic class of an agent to play the Squadro game.
+  This is the basic class 2 of an agent to play the Squadro game.
   """
   def get_action(self, state, last_action, time_left):
       self.last_action = last_action
@@ -38,4 +38,5 @@ class MyAgent(AlphaBetaAgent):
   representing the utility function of the board.
   """
   def evaluate(self, state):
-      return sum(state.get_pawn_advancement(self.id, pawn) for pawn in [0, 1, 2, 3, 4])
+      print(sum(state.get_pawn_advancement(self.id, pawn) - state.get_pawn_advancement(1 - self.id, pawn) for pawn in [0, 1, 2, 3, 4]))
+      return sum(state.get_pawn_advancement(self.id, pawn) - state.get_pawn_advancement(1 - self.id, pawn) for pawn in [0, 1, 2, 3, 4])
