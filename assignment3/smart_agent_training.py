@@ -1,7 +1,6 @@
 from agent import AlphaBetaAgent
 import minimax
 from time import time
-import numpy
 
 """
 Smart agent
@@ -24,14 +23,12 @@ class MyAgent(AlphaBetaAgent):
   def get_action(self, state, last_action, time_left):
       self.last_action = last_action
       self.time_left = time_left
+      self.max_time = time_left
       self.current_depth = 0
       self.start_time = time()
       if self.total_time == 0:
           self.total_time = time_left;
-      if time_left / self.total_time > 0.2:
-          self.max_time = 0.03 * self.total_time
-      else:
-          self.max_time = 0.03 * self.total_time * (time_left / (0.2 * self.total_time))**2
+      self.max_time = time_left
       best_move = 1
       # print(time_left)
       
@@ -43,7 +40,14 @@ class MyAgent(AlphaBetaAgent):
       #print("Finish")
       #print(self.current_depth)
       #print("Time elapsed during smart agent play:", time() - self.start_time)
-
+      
+      l1 = []
+      l2 = []
+      for pawn in [0, 1, 2, 3, 4]:
+          l1.append(state.get_pawn_advancement(self.id, pawn))
+          l2.append(state.get_pawn_advancement(1 - self.id, pawn))
+      print('{} {} {}'.format(l1, l2, best_move))
+      
       return best_move
 
   """

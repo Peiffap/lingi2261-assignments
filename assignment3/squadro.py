@@ -62,7 +62,10 @@ def main(agent_0, agent_1, time_out, first):
 			if event.type == pygame.QUIT:
 				pygame.quit() 
 				exit(0) 
-
+    
+	pygame.quit()
+	exit(0)
+    
 	# Game finished: display the winner
 	while True:
 		# Draw board
