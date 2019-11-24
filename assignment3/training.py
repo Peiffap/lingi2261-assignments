@@ -15,9 +15,9 @@ import torch.nn.functional as F
 def main(path):
         
     # Set the training parameters
-    epochs = 1
+    epochs = 20
     lr = 0.5
-    batch_size = 10
+    batch_size = 100
     
     # Torchvision contains a link to download the FashionMNIST dataset. Let's first 
     # store the training and test sets.
@@ -38,10 +38,10 @@ def main(path):
     #network = DeepNetwork().to(device) # Transfer Network on graphic card.
     
     network = SmallDeepNetwork()
-    network.load_state_dict(torch.load('model/model1.pt'))
+    network.load_state_dict(torch.load('model/model200.pt'))
     network.eval()
     
-    optimizer = optim.SGD(network.parameters(), lr=lr, momentum=0.9)
+    optimizer = optim.SGD(network.parameters(), lr=lr)
     criterion = nn.CrossEntropyLoss()
     
     print_network(network, optimizer)
@@ -53,7 +53,7 @@ def main(path):
     
     # Metrics in order to check how the training's going
     metrics = MetricsList(
-        metrics=[MLoss(F.cross_entropy), MAccuracy()],
+        metrics=[MLoss(criterion), MAccuracy()],
         names=["Loss", "Accuracy"]
     )
     
@@ -62,35 +62,41 @@ def main(path):
     for epoch in range(epochs):
         print(f"--- Starting epoch {epoch}")
         start = time.time()
+        i = 0
         
         # Train the model
         print("Training...")
         metrics.reset()
-    
+        print(metrics)
         network.train() # Set the network in training mode => weights become trainable aka modifiable
         for batch in train_loader:
+            i += 1
+            #print(i)
             x, t = batch
             #x, t = x.to(device), t.to(device)
-            x = x.float()
-            t = t.long()
 
             optimizer.zero_grad()  # (Re)Set all the gradients to zero
 
-            network = network.float()
-            y, vh = network(x)  # Infer a batch through the network
-            y = y.float()
-            #print('=============================')
-            #print(x.data)
-            #print(t.data)
-            #print(y.data)
-            #print('=============================')
-            
+            y, _ = network(x)  # Infer a batch through the network
+            '''
+            print('=============================')
+            print('x :')
+            print(x.data.numpy())
+            print('t :')
+            print(t.data.numpy())
+            print('y :')
+            print(y.data.numpy())
+            print('=============================')
+            '''
             
             loss = criterion(y, t)  # Compute the loss
             loss.backward()  # Compute the backward pass based on the gradients and activations
             optimizer.step()  # Update the weights
+            
+            #print_network(network, optimizer)
 
             metrics.update(y, t)
+            
         metrics.compute("Train")
     
          # Validate the model
@@ -103,8 +109,7 @@ def main(path):
                 x, t = batch
                 #x, t = x.to(device), t.to(device)
     
-                y, vh = network(x)
-                y = y.float()
+                y, _ = network(x)
                 metrics.update(y, t)
             metrics.compute("Validation")
         print(metrics)
@@ -115,7 +120,7 @@ def main(path):
         # Print logging
         print(f"\n-Ending epoch {epoch}: elapsed time {end - start}\n")
         
-    torch.save(network.state_dict(), 'model/model1.pt')
+    torch.save(network.state_dict(), 'model/model200.pt')
 
 
 class MetricsList():
@@ -184,6 +189,7 @@ def print_network(network, optimizer):
     for param_tensor in mod_dict:
         print(param_tensor, "\t", mod_dict[param_tensor].size())
         print(mod_dict[param_tensor])
+        print(torch.sum(mod_dict[param_tensor]))
     
     # Print optimizer's state_dict
     opt_dict = optimizer.state_dict()

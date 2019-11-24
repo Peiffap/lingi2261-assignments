@@ -67,32 +67,32 @@ class SmallDeepNetwork(nn.Module):
         
         nin = 10             # 10 inputs: 5 first numbers for the player and five numbers for the opponent
         nout = 5             # 5 outputs: probability to choose one of the 5 actions
-        hidden_layers = 20  # Size of the 3 hidden layers
+        hidden_layers = 200  # Size of the 3 hidden layers
 
-        self.batch200 = nn.BatchNorm1d(200)
-        self.batch5 = nn.BatchNorm1d(5)
         self.base_seq = nn.Sequential(
                           nn.Linear(nin, hidden_layers),
-                          nn.ReLU(),
-                          nn.Linear(hidden_layers, hidden_layers),
-                          nn.ReLU(),
-                          nn.Linear(hidden_layers, hidden_layers),
+                          nn.BatchNorm1d(num_features=hidden_layers),
                           nn.ReLU()
+                          #nn.Linear(hidden_layers, hidden_layers),
+                          #nn.ReLU(),
+                          #nn.Linear(hidden_layers, hidden_layers),
+                          #nn.ReLU()
                         )
         self.ph_seq = nn.Sequential(
                           nn.Linear(hidden_layers, nout),
+                          nn.BatchNorm1d(num_features=nout),
                           nn.ReLU()
                         )
         self.vh_seq = nn.Sequential(
                           nn.Linear(hidden_layers, 1),
+                          nn.BatchNorm1d(num_features=1),
                           nn.ReLU()
                         )
 
     def forward(self, x):
-        #print(x.shape)
+        #print(x)
         x = self.base_seq(x)
         #print(x)
-        #print(F.log_softmax(x))
         vh = self.vh_seq(x)
         ph = self.ph_seq(x) # soft max done in loss function
         #print(ph.shape)
@@ -121,7 +121,7 @@ class MyAgent(AlphaBetaAgent):
         self.epsilonMCTS = 0.2       # Probability to choose randomly the node in MCTS (for TRAINING only)
         self.tau = 1                 # If MCTS stochastic: select action with distribution pi^(1/tau)
         
-        self.deepnetwork = DeepNetwork()
+        self.deepnetwork = SmallDeepNetwork()
         self.tensor_state = None
 
         #for param in self.deepnetwork.parameters():
