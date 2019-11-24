@@ -30,7 +30,7 @@ def main(agent_0, agent_1, first):
 Get an action from player with a timeout.
 """
 def get_action_timed(player, state, last_action):
-	action = player.get_action(state, last_action, 2)
+	action = player.get_action(state, last_action, 50)
 	return action
 
 

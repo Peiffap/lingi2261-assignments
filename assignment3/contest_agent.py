@@ -47,14 +47,19 @@ Contest agent
 class MyAgent(AlphaBetaAgent):
 
     def __init__(self):
-        self.current_depth = 0
-        self.action_size = 5
-        self.max_depth = 9
-        self.max_time = 0
-        self.start_time = 0
-        self.total_time = 0
+        self.action_size = 5         # Number of actions
+        self.max_depth = 9           # Max depth of the MCTS (to remove)
+        self.max_time = 0            # Max time for the simulations
+        self.start_time = 0          # Start time of the simulation
+        self.total_time = 0          # Total time of the game
         self.mcts = None
-
+        self.MC_steps = 50           # Number of steps in MCTS
+        self.turn_time = 0.03        # Percentage of total time allowed for each turn
+        self.hurry_time = 0.2        # Percentage of total time when it begins to hurry up
+        self.epsilonMove = 0.03      # Probability to choose randomly the move
+        self.epsilonMCTS = 0.2       # Probability to choose randomly the node in MCTS (for TRAINING only)
+        self.tau = 1                 # If MCTS stochastic: select action with distribution pi^(1/tau)
+        
         self.deepnetwork = DeepNetwork()
         self.tensor_state = None
 
@@ -79,16 +84,14 @@ class MyAgent(AlphaBetaAgent):
     def get_action(self, state, last_action, time_left):
         self.last_action = last_action
         self.time_left = time_left
-        self.current_depth = 0
         self.start_time = time()
         if self.total_time == 0:
             self.total_time = time_left;
-        if time_left / self.total_time > 0.2:
-            self.max_time = 0.03 * self.total_time
+        if time_left / self.total_time > self.hurry_time:
+            self.max_time = self.turn_time * self.total_time
         else:
-            self.max_time = 0.03 * self.total_time * (time_left / (0.2 * self.total_time))**2
+            self.max_time = self.turn_time * self.total_time * (time_left / (self.hurry_time * self.total_time))**2
         best_move = 1
-        # print(time_left)
         
         root = Node(state)
         self.mcts = MCTS(root)
@@ -96,9 +99,9 @@ class MyAgent(AlphaBetaAgent):
         #### MCTS
         value = self.evaluateLeaf(root, 0)
         n = 1
-        while time() - self.start_time < self.max_time and n < 50:
+        # while time() - self.start_time < self.max_time and n < 50: # TO REPLACE for contest
+        while n < self.MC_steps:
             #print(time() - self.start_time)
-            #best_move = minimax.search(state, self)
             logger_mcts.info('***************************')
             logger_mcts.info('****** SIMULATION %d ******', n)
             logger_mcts.info('***************************')
@@ -108,16 +111,15 @@ class MyAgent(AlphaBetaAgent):
         #print(self.current_depth)
         #print("Time elapsed during smart agent play:", time() - self.start_time)
         
-        pi, values = self.getAV(1)
+        pi, values = self.getAV()
         
-         #### pick the action (at random with prob = epsilon)
-        epsilon = 0.03
-        tau = 1 if random.uniform(0, 1) < epsilon else 0
+         #### pick the action (stochastically with prob = epsilon)
+        tau = self.tau if random.uniform(0, 1) < self.epsilonMove else 0
         best_move, value = self.chooseAction(pi, values, tau)
 
         nextState, _ = self.takeAction(state, best_move)
 
-        NN_value = -self.evaluate(nextState)[1]
+        NN_value = -self.evaluate(nextState)[1] # - sign because it evaluates with respect to the current player of the state
 
         logger_mcts.info('ACTION VALUES...%s', pi)
         logger_mcts.info('CHOSEN ACTION...%d', best_move)
@@ -143,9 +145,13 @@ class MyAgent(AlphaBetaAgent):
         # Breadcrumbs = path from root to leaf
         leaf, done, breadcrumbs = self.mcts.moveToLeaf(self)
         render(leaf.state, logger_mcts)
+        
+        #print_state(leaf.state)
 
         ##### EVALUATE THE LEAF NODE with deep neural network + add edges to leaf node
         value = self.evaluateLeaf(leaf, done)
+
+        
 
         ##### BACKFILL THE VALUE THROUGH THE TREE
         self.mcts.backFill(leaf, value, breadcrumbs)
@@ -160,7 +166,7 @@ class MyAgent(AlphaBetaAgent):
         if done == 0:
     
             probs, value = self.evaluate(leaf.state)
-            print(probs)
+            #print(probs)
             allowedActions = leaf.state.get_current_player_actions()
             logger_mcts.info('PREDICTED VALUE FOR %d: %f', leaf.playerTurn, value)
 
@@ -183,23 +189,23 @@ class MyAgent(AlphaBetaAgent):
         return value
     
     
-    def getAV(self, tau):
+    def getAV(self):
         edges = self.mcts.root.edges
         pi = np.zeros(self.action_size, dtype=np.integer)
         values = np.zeros(self.action_size, dtype=np.float32)
         
         for action, edge in edges:
-            pi[action] = pow(edge.stats['N'], 1/tau)
+            pi[action] = pow(edge.stats['N'], 1/self.tau)
             values[action] = edge.stats['Q']
         pi = pi / (np.sum(pi) * 1.0)
         return pi, values
       
       
     def chooseAction(self, pi, values, tau):
-        if tau == 0:
+        if tau == 0: # Choose deterministically
             actions = np.argwhere(pi == max(pi))
             action = random.choice(actions)[0] # if several states have the same prob
-        else:
+        else: # Choose stochastically (for TRAINING)
             action_idx = np.random.multinomial(1, pi)
             action = np.where(action_idx==1)[0][0] # random action
 
@@ -238,7 +244,7 @@ class MyAgent(AlphaBetaAgent):
     search has to stop and false otherwise.
     """
     def cutoff(self, state, depth):
-        return depth > self.current_depth or state.game_over_check() or time() - self.start_time > self.max_time
+        return state.game_over_check() #or time() - self.start_time > self.max_time
 
 
     """
@@ -246,16 +252,29 @@ class MyAgent(AlphaBetaAgent):
     representing the utility function of the board.
     """
     def evaluate(self, state):
-        l1 = [state.get_pawn_advancement(self.id, pawn) for pawn in [0, 1, 2, 3, 4]]
-        l2 = [state.get_pawn_advancement(1 - self.id, pawn) for pawn in [0, 1, 2, 3, 4]]
+        l1 = [state.get_pawn_advancement(state.cur_player, pawn) for pawn in [0, 1, 2, 3, 4]]
+        l2 = [state.get_pawn_advancement(1 - state.cur_player, pawn) for pawn in [0, 1, 2, 3, 4]]
         x = torch.FloatTensor(l1 + l2)
         ph, vh = self.deepnetwork(x)
         ph = ph.data.numpy()
         vh = np.float(vh.data.numpy())
-        return (ph, vh) # Deep neural network evaluation
-        #return (np.array([0.2, 0.2, 0.2, 0.2, 0.2]), sum(l2)-sum(l1)) # basic eval function
+        #return (ph, vh) # Deep neural network evaluation
+    
+        ph = np.zeros(self.action_size)
+        for a, s in self.successors(state):
+            ph[a] = self.sum_eval(s)
+        ph = np.exp(ph) / sum(np.exp(ph))
+        vh = sum(l1[1:]) - sum(l2[1:])
+        return (ph, vh) # basic eval function
 
 
+    def sum_eval(self, state):
+        l1 = [state.get_pawn_advancement(state.cur_player, pawn) for pawn in [0, 1, 2, 3, 4]]
+        l2 = [state.get_pawn_advancement(1 - state.cur_player, pawn) for pawn in [0, 1, 2, 3, 4]]
+        l1.sort()
+        l2.sort()
+        return sum(l1[1:]) - sum(l2[1:])
+       
 
 # Source: https://github.com/AppliedDataSciencePartners/DeepReinforcementLearning/
 
@@ -286,7 +305,7 @@ class MCTS():
             maxQU = -9999
 
             # Choose randomly at 20% for the root node (ONLY for the training)
-            epsilon = 0.2 if currentNode == self.root else 0
+            epsilon = player.epsilonMCTS if currentNode == self.root else 0
             nu = np.random.dirichlet([0.8] * len(currentNode.edges)) if currentNode == self.root else [0] * len(currentNode.edges)
 
             Nb = 0
@@ -321,6 +340,8 @@ class MCTS():
 
     def backFill(self, leaf, value, breadcrumbs):
         logger_mcts.info('------DOING BACKFILL------')
+
+        #print_breadcrumbs(breadcrumbs)
 
         currentPlayer = leaf.playerTurn
 
@@ -412,3 +433,17 @@ logger_mcts.disabled = LOGGER_DISABLED['mcts']
 def render(state, logger):
     logger.info(state.cur_pos)
     logger.info('--------------')
+    
+def print_state(state):
+    l1 = [state.get_pawn_advancement(0, pawn) for pawn in [0, 1, 2, 3, 4]]
+    l2 = [state.get_pawn_advancement(1, pawn) for pawn in [0, 1, 2, 3, 4]]
+    print('State: {} {}'.format(l1, l2))
+    
+def print_breadcrumbs(bread):
+    print('Breadcrumbs:')
+    for edge in bread:
+        print_state(edge.inNode.state)
+        print('=>')
+        print_state(edge.outNode.state)
+        print('------------------------------------')
+        
