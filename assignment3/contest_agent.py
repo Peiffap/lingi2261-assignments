@@ -9,7 +9,7 @@ import logging
 import random
 run_folder = './run/'
 
-class DeepNetwork(nn.Module):
+class BigDeepNetwork(nn.Module):
     def __init__(self):
         """
           nin: #input channels
@@ -18,28 +18,89 @@ class DeepNetwork(nn.Module):
         """
         super().__init__()
         
-        nin = 10             # 10 inputs: 5 numbers for each player
+        nin = 10             # 10 inputs: 5 first numbers for the player and five numbers for the opponent
         nout = 5             # 5 outputs: probability to choose one of the 5 actions
         hidden_layers = 200  # Size of the 3 hidden layers
 
-        self.fc1 = nn.Linear(nin, hidden_layers)
-        self.fc2 = nn.Linear(hidden_layers, hidden_layers)
-        self.fc3 = nn.Linear(hidden_layers, hidden_layers)
-        self.fcv = nn.Linear(hidden_layers, 1)
-        self.fcp = nn.Linear(hidden_layers, nout)
         self.batch200 = nn.BatchNorm1d(200)
         self.batch5 = nn.BatchNorm1d(5)
-                  
+        self.base_seq = nn.Sequential(
+                          nn.Linear(nin, hidden_layers),
+                          nn.ReLU(),
+                          nn.Linear(hidden_layers, hidden_layers),
+                          nn.ReLU(),
+                          nn.Linear(hidden_layers, hidden_layers),
+                          nn.ReLU()
+                        )
+        self.ph_seq = nn.Sequential(
+                          nn.Linear(hidden_layers, nout),
+                          nn.ReLU()
+                        )
+        self.vh_seq = nn.Sequential(
+                          nn.Linear(hidden_layers, 1),
+                          nn.ReLU()
+                        )
 
     def forward(self, x):
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = F.relu(self.fc3(x))
+        #print(x.shape)
+        x = self.base_seq(x)
         #print(x)
         #print(F.log_softmax(x))
-        vh = F.relu(self.fcv(x))
-        ph = F.relu(self.fcp(x))
-        return (F.log_softmax(ph), vh)
+        vh = self.vh_seq(x)
+        ph = self.ph_seq(x) # soft max done in loss function
+        #print(ph.shape)
+        #print(vh.shape)
+        #print(vh)
+        #print(ph)
+        return (ph, vh)
+    
+
+
+class SmallDeepNetwork(nn.Module):
+    def __init__(self):
+        """
+          nin: #input channels
+          nout: #output channels
+          ksize: kernel size (same for both dimensions)
+        """
+        super().__init__()
+        
+        nin = 10             # 10 inputs: 5 first numbers for the player and five numbers for the opponent
+        nout = 5             # 5 outputs: probability to choose one of the 5 actions
+        hidden_layers = 20  # Size of the 3 hidden layers
+
+        self.batch200 = nn.BatchNorm1d(200)
+        self.batch5 = nn.BatchNorm1d(5)
+        self.base_seq = nn.Sequential(
+                          nn.Linear(nin, hidden_layers),
+                          nn.ReLU(),
+                          nn.Linear(hidden_layers, hidden_layers),
+                          nn.ReLU(),
+                          nn.Linear(hidden_layers, hidden_layers),
+                          nn.ReLU()
+                        )
+        self.ph_seq = nn.Sequential(
+                          nn.Linear(hidden_layers, nout),
+                          nn.ReLU()
+                        )
+        self.vh_seq = nn.Sequential(
+                          nn.Linear(hidden_layers, 1),
+                          nn.ReLU()
+                        )
+
+    def forward(self, x):
+        #print(x.shape)
+        x = self.base_seq(x)
+        #print(x)
+        #print(F.log_softmax(x))
+        vh = self.vh_seq(x)
+        ph = self.ph_seq(x) # soft max done in loss function
+        #print(ph.shape)
+        #print(vh.shape)
+        #print(vh)
+        #print(ph)
+        return (ph, vh)
+    
 
 """
 Contest agent
@@ -67,9 +128,9 @@ class MyAgent(AlphaBetaAgent):
         #    print(param.data)
 
         # create a stochastic gradient descent optimizer
-        optimizer = optim.SGD(self.deepnetwork.parameters(), lr=0.01, momentum=0.9)
+        self.optimizer = optim.SGD(self.deepnetwork.parameters(), lr=0.01, momentum=0.9)
         # create a loss function
-        criterion = nn.NLLLoss()
+        self.criterion = nn.NLLLoss()
 
         print(self.deepnetwork)
 
@@ -258,14 +319,14 @@ class MyAgent(AlphaBetaAgent):
         ph, vh = self.deepnetwork(x)
         ph = ph.data.numpy()
         vh = np.float(vh.data.numpy())
-        #return (ph, vh) # Deep neural network evaluation
+        return (ph, vh) # Deep neural network evaluation
     
-        ph = np.zeros(self.action_size)
-        for a, s in self.successors(state):
-            ph[a] = self.sum_eval(s)
-        ph = np.exp(ph) / sum(np.exp(ph))
-        vh = sum(l1[1:]) - sum(l2[1:])
-        return (ph, vh) # basic eval function
+        #ph = np.zeros(self.action_size)
+        #for a, s in self.successors(state):
+        #    ph[a] = self.sum_eval(s)
+        #ph = np.exp(ph) / sum(np.exp(ph))
+        #vh = sum(l1[1:]) - sum(l2[1:])
+        #return (ph, vh) # basic eval function
 
 
     def sum_eval(self, state):
@@ -274,7 +335,7 @@ class MyAgent(AlphaBetaAgent):
         l1.sort()
         l2.sort()
         return sum(l1[1:]) - sum(l2[1:])
-       
+
 
 # Source: https://github.com/AppliedDataSciencePartners/DeepReinforcementLearning/
 
