@@ -20,15 +20,15 @@ def training(data, model_path, new_model_path, agent):
     print("Training...")
     # Set the training parameters
     lr = 0.01
-    batch_size = 256 # Check with smaller batch
+    batch_size = 3 # Check with smaller batch
     epochs = 1
     
     train_data = SquadroDataset(data)
     
     # We now divide the training data in training set and validation set.
     n_train = len(train_data)
-    if n_train % batch_size == 1:
-        batch_size = batch_size - 1
+    while n_train % batch_size == 1:
+        batch_size += 1
     indices = list(range(n_train))
     split = int(n_train - (n_train * 0.05))  # Keep 10% for validation
     train_set = Subset(train_data, indices[:split])

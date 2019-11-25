@@ -34,6 +34,10 @@ def game(agent_0, agent_1, first, i):
     agents[0].set_id(0)
     agents[1].set_id(1)
     agents[1].set_model_path(other_model_path)
+    agents[0].epsilonMCTS = 0
+    agents[1].epsilonMCTS = 0
+    agents[0].epsilonMove = 0
+    agents[1].epsilonMove = 0
     if i == 0:
         print('Network 0 (main) -------------------------------------------------------')
         print_network(agents[0].deepnetwork)

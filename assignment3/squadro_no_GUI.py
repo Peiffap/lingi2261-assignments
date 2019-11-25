@@ -25,7 +25,7 @@ def main(agent_0, agent_1, first):
 			last_action = action
 		else:
 			cur_state.set_invalid_action(cur_player)
-
+	print(cur_player)
 """
 Get an action from player with a timeout.
 """
