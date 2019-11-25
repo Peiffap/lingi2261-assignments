@@ -7,7 +7,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 import logging
 import random
+
 run_folder = './run/'
+model_path = 'model/model200neurons_7layers.pt'
 
 class BigDeepNetwork(nn.Module):
     def __init__(self):
@@ -18,36 +20,83 @@ class BigDeepNetwork(nn.Module):
         """
         super().__init__()
         
-        nin = 10             # 10 inputs: 5 first numbers for the player and five numbers for the opponent
+        nin = 11             # 11 inputs: player id, 5 first numbers for the player 0 and five numbers for the player 1
         nout = 5             # 5 outputs: probability to choose one of the 5 actions
-        hidden_layers = 200  # Size of the 3 hidden layers
+        hidden_layers = 200  # Size of the 7 hidden layers
 
-        self.batch200 = nn.BatchNorm1d(200)
-        self.batch5 = nn.BatchNorm1d(5)
-        self.base_seq = nn.Sequential(
-                          nn.Linear(nin, hidden_layers),
-                          nn.ReLU(),
-                          nn.Linear(hidden_layers, hidden_layers),
-                          nn.ReLU(),
-                          nn.Linear(hidden_layers, hidden_layers),
-                          nn.ReLU()
-                        )
-        self.ph_seq = nn.Sequential(
-                          nn.Linear(hidden_layers, nout),
-                          nn.ReLU()
-                        )
-        self.vh_seq = nn.Sequential(
-                          nn.Linear(hidden_layers, 1),
-                          nn.ReLU()
-                        )
+        self.lin1 = nn.Linear(nin, hidden_layers)
+        self.lin2 = nn.Linear(hidden_layers, hidden_layers)
+        self.lin3 = nn.Linear(hidden_layers, hidden_layers)
+        self.lin4 = nn.Linear(hidden_layers, hidden_layers)
+        self.lin5 = nn.Linear(hidden_layers, hidden_layers)
+        self.batch_hid = nn.BatchNorm1d(num_features=hidden_layers)
+        
+        self.linp1 = nn.Linear(hidden_layers, hidden_layers)
+        self.linp2 = nn.Linear(hidden_layers, hidden_layers)
+        self.linp3 = nn.Linear(hidden_layers, nout)
+        self.batch_p = nn.BatchNorm1d(num_features=nout)
+        
+        self.linv1 = nn.Linear(hidden_layers, hidden_layers)
+        self.linv2 = nn.Linear(hidden_layers, hidden_layers)
+        self.linv3 = nn.Linear(hidden_layers, 1)
+        self.batch_v = nn.BatchNorm1d(num_features=1)
+        
+        self.soft = F.softmax()
+        
+
 
     def forward(self, x):
         #print(x.shape)
-        x = self.base_seq(x)
+        l = x.size()
+        ll = len(l)
+        x = self.lin1(x)
+        if ll > 1:
+            x = self.batch_hid(x)
+        x = F.relu(x)
+        x = self.lin2(x)
+        if ll > 1:
+            x = self.batch_hid(x)
+        x = F.relu(x)
+        x = self.lin3(x)
+        if ll > 1:
+            x = self.batch_hid(x)
+        x = F.relu(x)
+        x = self.lin4(x)
+        if ll > 1:
+            x = self.batch_hid(x)
+        x = F.relu(x)
+        x = self.lin5(x)
+        if ll > 1:
+            x = self.batch_hid(x)
+        x = F.relu(x)
+        
+        ph = self.linp1(x)
+        if ll > 1:
+            ph = self.batch_hid(ph)
+        ph = F.relu(ph)
+        ph = self.linp2(x)
+        if ll > 1:
+            ph = self.batch_hid(ph)
+        ph = F.relu(ph)
+        ph = self.linp3(x)
+        if ll > 1:
+            ph = self.batch_p(ph)
+        ph = self.soft(F.relu(ph)) # soft max done in loss function
+        
+        vh = self.linv1(x)
+        if ll > 1:
+            vh = self.batch_hid(vh)
+        vh = self.linv2(x)
+        if ll > 1:
+            vh = self.batch_hid(vh)
+        vh = F.relu(vh)
+        vh = self.linv3(x)
+        if ll > 1:
+            vh = self.batch_v(vh)
+        vh = F.relu(vh)
+        
         #print(x)
-        #print(F.log_softmax(x))
-        vh = self.vh_seq(x)
-        ph = self.ph_seq(x) # soft max done in loss function
+        #print(F.log_softmax(x)) 
         #print(ph.shape)
         #print(vh.shape)
         #print(vh)
@@ -65,7 +114,7 @@ class SmallDeepNetwork(nn.Module):
         """
         super().__init__()
         
-        nin = 10             # 10 inputs: 5 first numbers for the player and five numbers for the opponent
+        nin = 11             # 10 inputs: 5 first numbers for the player and five numbers for the opponent
         nout = 5             # 5 outputs: probability to choose one of the 5 actions
         hidden_layers = 200  # Size of the 3 hidden layers
 
@@ -81,7 +130,8 @@ class SmallDeepNetwork(nn.Module):
         self.ph_seq = nn.Sequential(
                           nn.Linear(hidden_layers, nout),
                           nn.BatchNorm1d(num_features=nout),
-                          nn.ReLU()
+                          nn.ReLU(),
+                          F.softmax()
                         )
         self.vh_seq = nn.Sequential(
                           nn.Linear(hidden_layers, 1),
@@ -121,23 +171,26 @@ class MyAgent(AlphaBetaAgent):
         self.epsilonMCTS = 0.2       # Probability to choose randomly the node in MCTS (for TRAINING only)
         self.tau = 1                 # If MCTS stochastic: select action with distribution pi^(1/tau)
         
-        self.deepnetwork = SmallDeepNetwork()
+        self.results = None          # Store results
+        
+        self.deepnetwork = BigDeepNetwork()
+        self.deepnetwork.load_state_dict(torch.load(model_path))
+        self.deepnetwork.eval()
         self.tensor_state = None
 
         #for param in self.deepnetwork.parameters():
         #    print(param.data)
 
-        # create a stochastic gradient descent optimizer
-        self.optimizer = optim.SGD(self.deepnetwork.parameters(), lr=0.01, momentum=0.9)
-        # create a loss function
-        self.criterion = nn.NLLLoss()
-
-        print(self.deepnetwork)
+        #print(self.deepnetwork)
 
 
     def get_name(self):
         return 'Group 13'
     
+    
+    def set_model_path(self, model_path):
+        self.deepnetwork.load_state_dict(torch.load(model_path))
+        self.deepnetwork.eval()
     
     """
     This is the smart class of an agent to play the Squadro game.
@@ -158,14 +211,14 @@ class MyAgent(AlphaBetaAgent):
         self.mcts = MCTS(root)
         
         #### MCTS
-        value = self.evaluateLeaf(root, 0)
+        root_value = self.evaluateLeaf(root, 0)
         n = 1
         # while time() - self.start_time < self.max_time and n < 50: # TO REPLACE for contest
         while n < self.MC_steps:
             #print(time() - self.start_time)
-            logger_mcts.info('***************************')
-            logger_mcts.info('****** SIMULATION %d ******', n)
-            logger_mcts.info('***************************')
+            #logger_mcts.info('***************************')
+            #logger_mcts.info('****** SIMULATION %d ******', n)
+            #logger_mcts.info('***************************')
             self.simulate(state)
             n += 1
         #print("Finish")
@@ -182,30 +235,33 @@ class MyAgent(AlphaBetaAgent):
 
         NN_value = -self.evaluate(nextState)[1] # - sign because it evaluates with respect to the current player of the state
 
-        logger_mcts.info('ACTION VALUES...%s', pi)
-        logger_mcts.info('CHOSEN ACTION...%d', best_move)
-        logger_mcts.info('MCTS PERCEIVED VALUE...%f', value)  # Value estimated by MCTS: Q = W/N (average of the all the values along the path)
-        logger_mcts.info('NN PERCEIVED VALUE...%f', NN_value) # Value estimated by the Neural Network (only for the next state)
+        ##logger_mcts.info('ACTION VALUES...%s', pi)
+        ##logger_mcts.info('CHOSEN ACTION...%d', best_move)
+        ##logger_mcts.info('MCTS PERCEIVED VALUE...%f', value)  # Value estimated by MCTS: Q = W/N (average of the all the values along the path)
+        ##logger_mcts.info('NN PERCEIVED VALUE...%f', NN_value) # Value estimated by the Neural Network (only for the next state)
 
         #print(best_move, pi, value, NN_value)
       
-        l1 = [state.get_pawn_advancement(self.id, pawn) for pawn in [0, 1, 2, 3, 4]]
-        l2 = [state.get_pawn_advancement(1 - self.id, pawn) for pawn in [0, 1, 2, 3, 4]]
-        print('{} {} {}'.format(l1, l2, best_move))
+        l1 = [state.get_pawn_advancement(0, pawn) for pawn in [0, 1, 2, 3, 4]]
+        l2 = [state.get_pawn_advancement(1, pawn) for pawn in [0, 1, 2, 3, 4]]
+        results = [self.id] + l1 + l2 + list(pi)
+        self.results = np.array(results)
+        self.results = np.transpose(np.reshape(self.results, newshape=[-1,1]))
+        print('{} {} {} {}'.format(self.id, l1, l2, pi))
         
         return best_move
   
     
     def simulate(self, state):
       
-        logger_mcts.info('ROOT NODE...')
-        render(self.mcts.root.state, logger_mcts)
-        logger_mcts.info('CURRENT PLAYER...%d', self.mcts.root.playerTurn)
+        #logger_mcts.info('ROOT NODE...')
+        #render(self.mcts.root.state, #logger_mcts)
+        #logger_mcts.info('CURRENT PLAYER...%d', self.mcts.root.playerTurn)
         
         ##### MOVE THE LEAF NODE
         # Breadcrumbs = path from root to leaf
         leaf, done, breadcrumbs = self.mcts.moveToLeaf(self)
-        render(leaf.state, logger_mcts)
+        #render(leaf.state, #logger_mcts)
         
         #print_state(leaf.state)
 
@@ -220,7 +276,7 @@ class MyAgent(AlphaBetaAgent):
 
     def evaluateLeaf(self, leaf, done):
 
-        logger_mcts.info('------EVALUATING LEAF------')
+        #logger_mcts.info('------EVALUATING LEAF------')
 
         value = 1
 
@@ -229,7 +285,7 @@ class MyAgent(AlphaBetaAgent):
             probs, value = self.evaluate(leaf.state)
             #print(probs)
             allowedActions = leaf.state.get_current_player_actions()
-            logger_mcts.info('PREDICTED VALUE FOR %d: %f', leaf.playerTurn, value)
+            #logger_mcts.info('PREDICTED VALUE FOR %d: %f', leaf.playerTurn, value)
 
             probs = probs[allowedActions]
 
@@ -239,10 +295,10 @@ class MyAgent(AlphaBetaAgent):
                 node = Node(newState)
                 #if newState.id not in self.mcts.tree:
                 #self.mcts.addNode(node)
-                logger_mcts.info('added node......p = %f', probs[idx])
+                #logger_mcts.info('added node......p = %f', probs[idx])
                 #else:
                 #    node = self.mcts.tree[newState.id]
-                 #   logger_mcts.info('existing node...%s...', node.id)
+                 #   #logger_mcts.info('existing node...%s...', node.id)
 
                 newEdge = Edge(leaf, node, probs[idx], action)
                 leaf.edges.append((action, newEdge))
@@ -315,7 +371,7 @@ class MyAgent(AlphaBetaAgent):
     def evaluate(self, state):
         l1 = [state.get_pawn_advancement(state.cur_player, pawn) for pawn in [0, 1, 2, 3, 4]]
         l2 = [state.get_pawn_advancement(1 - state.cur_player, pawn) for pawn in [0, 1, 2, 3, 4]]
-        x = torch.FloatTensor(l1 + l2)
+        x = torch.FloatTensor([self.id] + l1 + l2)
         ph, vh = self.deepnetwork(x)
         ph = ph.data.numpy()
         vh = np.float(vh.data.numpy())
@@ -352,7 +408,7 @@ class MCTS():
 
     def moveToLeaf(self, player):
 
-        logger_mcts.info('------MOVING TO LEAF------')
+        #logger_mcts.info('------MOVING TO LEAF------')
 
         breadcrumbs = []
         currentNode = self.root
@@ -361,9 +417,9 @@ class MCTS():
 
         while not currentNode.isLeaf():
 
-            logger_mcts.info('PLAYER TURN...%d', currentNode.playerTurn)
-        
-            maxQU = -9999
+            #logger_mcts.info('PLAYER TURN...%d', currentNode.playerTurn)
+            
+            maxQU = -float('Inf')
 
             # Choose randomly at 20% for the root node (ONLY for the training)
             epsilon = player.epsilonMCTS if currentNode == self.root else 0
@@ -379,28 +435,28 @@ class MCTS():
                     
                 Q = edge.stats['Q']
 
-                logger_mcts.info('action: %d (%d)... N = %d, P = %f, nu = %f, adjP = %f, W = %f, Q = %f, U = %f, Q+U = %f'
-                    , action, action % 7, edge.stats['N'], np.round(edge.stats['P'],6), np.round(nu[idx],6), ((1-epsilon) * edge.stats['P'] + epsilon * nu[idx] )
-                    , np.round(edge.stats['W'],6), np.round(Q,6), np.round(U,6), np.round(Q+U,6))
+                #logger_mcts.info('action: %d (%d)... N = %d, P = %f, nu = %f, adjP = %f, W = %f, Q = %f, U = %f, Q+U = %f'
+                #    , action, action % 7, edge.stats['N'], np.round(edge.stats['P'],6), np.round(nu[idx],6), ((1-epsilon) * edge.stats['P'] + epsilon * nu[idx] )
+                #    , np.round(edge.stats['W'],6), np.round(Q,6), np.round(U,6), np.round(Q+U,6))
 
                 if Q + U > maxQU:
                     maxQU = Q + U
                     simulationAction = action
                     simulationEdge = edge
 
-            logger_mcts.info('action with highest Q + U...%d', simulationAction)
+            #logger_mcts.info('action with highest Q + U...%d', simulationAction)
 
             newState, done = player.takeAction(currentNode.state, simulationAction) # the value of the newState from the POV of the new playerTurn
             currentNode = simulationEdge.outNode
             breadcrumbs.append(simulationEdge)
 
-        logger_mcts.info('DONE...%d', done)
+        #logger_mcts.info('DONE...%d', done)
 
         return currentNode, done, breadcrumbs
 
 
     def backFill(self, leaf, value, breadcrumbs):
-        logger_mcts.info('------DOING BACKFILL------')
+        #logger_mcts.info('------DOING BACKFILL------')
 
         #print_breadcrumbs(breadcrumbs)
 
@@ -414,15 +470,15 @@ class MCTS():
             edge.stats['W'] = edge.stats['W'] + value * direction
             edge.stats['Q'] = edge.stats['W'] / edge.stats['N']
 
-            logger_mcts.info('updating edge with value %f for player %d... N = %d, W = %f, Q = %f'
-                , value * direction
-                , playerTurn
-                , edge.stats['N']
-                , edge.stats['W']
-                , edge.stats['Q']
-                )
+            #logger_mcts.info('updating edge with value %f for player %d... N = %d, W = %f, Q = %f'
+            #    , value * direction
+            #    , playerTurn
+             #   , edge.stats['N']
+              #  , edge.stats['W']
+              #  , edge.stats['Q']
+              #  )
 
-            render(edge.outNode.state, logger_mcts)
+            #render(edge.outNode.state, #logger_mcts)
 
     #def addNode(self, node):
      #   self.tree[node.id] = node
@@ -469,7 +525,7 @@ def setup_logger(name, log_file, level=logging.INFO):
     handler = logging.FileHandler(log_file)        
     handler.setFormatter(formatter)
 
-    logger = logging.getLogger(name)
+    logger = logging.getlogger(name)
     logger.setLevel(level)
     if not logger.handlers:
         logger.addHandler(handler)
@@ -477,10 +533,10 @@ def setup_logger(name, log_file, level=logging.INFO):
     return logger
 
 
-### SET all LOGGER_DISABLED to True to disable logging
+### SET all #logger_DISABLED to True to disable logging
 ### WARNING: the mcts log file gets big quite quickly
 
-LOGGER_DISABLED = {
+logger_DISABLED = {
 'main':False
 , 'memory':False
 , 'tourney':False
@@ -488,8 +544,8 @@ LOGGER_DISABLED = {
 , 'model': False}
 
 
-logger_mcts = setup_logger('logger_mcts', 'logs/logger_mcts.log')
-logger_mcts.disabled = LOGGER_DISABLED['mcts']
+#logger_mcts = setup_#logger('#logger_mcts', 'logs/#logger_mcts.log')
+#logger_mcts.disabled = #logger_DISABLED['mcts']
 
 def render(state, logger):
     logger.info(state.cur_pos)
