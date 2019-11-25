@@ -1,7 +1,6 @@
 from agent import AlphaBetaAgent
 import minimax
 from time import time
-import numpy
 
 """
 Smart agent

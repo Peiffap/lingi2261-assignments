@@ -1,12 +1,15 @@
-import argparse
 from squadro_state import SquadroState
 import numpy as np
 from training_with_itself import training, save_new_model
 
-text = 'dummyDNN'
-# text = 'model200neurons_7layers'
+#text = 'dummyDNN'
+text = 'contest_agent3'
 model_path     = 'model/{}.pt'.format(text)
 new_model_path = 'model/{}_new.pt'.format(text)
+
+ai0 = 'contest_agent3'
+ai1 = ai0
+first = 0
 
 """
 Runs the game
@@ -19,24 +22,27 @@ def main(agent_0, agent_1, first):
 
     
     while True:
+        print('Train: ', init)
         (results, winner) = game(agent_0, agent_1, first, validation=0)
         new_result = np.append(results, np.transpose(2 * np.abs(np.transpose(np.reshape(results[:,0], newshape=[-1,1])) + np.transpose(winner * np.ones((np.size(results, 0), 1))) -1) - 1), 1)
         all_results = new_result if init == 1 else np.append(all_results, new_result, 0)
         init += 1
         
-        if init % 10 == 0:
+        if init % 30 == 0:
             init = 1
             iterations += 1
             np.save('data/{}_{}'.format(text, iterations), all_results)
             
-            training(all_results, model_path, new_model_path)
+            training(all_results, model_path, new_model_path, ai0)
             
             # Validation
+            print("Validation...")
             victory = 0
             n = 50
             for i in range(n):
                 (results, winner) = game(agent_0, agent_1, first, validation=1)
                 victory += winner # number of victories for player 1
+                print('Validation', i, ':', victory / (i+1))
             if victory / n > 0.55:
                 # model validated, replaced with new one
                 save_new_model(model_path, new_model_path)
@@ -58,6 +64,11 @@ def game(agent_0, agent_1, first, validation):
     agents[1].set_id(1)
     if validation: # Use different models during validation phase
         agents[1].set_model_path(new_model_path)
+        # Remove stochastic actions
+        agents[0].epsilonMCTS = 0
+        agents[1].epsilonMCTS = 0
+        agents[0].epsilonMove = 0
+        agents[1].epsilonMove = 0
     last_action = None
     
     while not cur_state.game_over():
@@ -89,14 +100,5 @@ def get_action_timed(player, state, last_action):
 
 
 if __name__ == "__main__":
-	parser = argparse.ArgumentParser()
-	parser.add_argument("-ai0", help="path to the ai that will play as player 0")
-	parser.add_argument("-ai1", help="path to the ai that will play as player 1")
-	parser.add_argument("-f", help="indicates the player (0 or 1) that plays first; random otherwise")
-	args = parser.parse_args()
-
-	ai0 = args.ai0 if args.ai0 != None else "human_agent"
-	ai1 = args.ai1 if args.ai1 != None else "human_agent"
-	first = int(args.f) if args.f != None else -1
 
 	main(ai0, ai1, first)

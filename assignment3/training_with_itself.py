@@ -1,6 +1,7 @@
 import argparse
 import numpy as np
-from contest_agent import SmallDeepNetwork, BigDeepNetwork
+#from contest_agent import DeepNetwork
+#from dummyDNN import DeepNetwork
 import pandas as pd
 import time
 from ignite.metrics import Loss as MLoss
@@ -15,17 +16,19 @@ from shutil import copyfile
 
 
 
-def training(data, model_path, new_model_path):
+def training(data, model_path, new_model_path, agent):
     print("Training...")
     # Set the training parameters
-    lr = 0.1
-    batch_size = 20
-    epochs = 20
+    lr = 0.01
+    batch_size = 256 # Check with smaller batch
+    epochs = 1
     
     train_data = SquadroDataset(data)
     
     # We now divide the training data in training set and validation set.
     n_train = len(train_data)
+    if n_train % batch_size == 1:
+        batch_size = batch_size - 1
     indices = list(range(n_train))
     split = int(n_train - (n_train * 0.05))  # Keep 10% for validation
     train_set = Subset(train_data, indices[:split])
@@ -38,17 +41,17 @@ def training(data, model_path, new_model_path):
     #network = DeepNetwork().to(device) # Transfer Network on graphic card.
     
     
-    network = BigDeepNetwork()
+    network = getattr(__import__(agent), 'DeepNetwork')()
     network.load_state_dict(torch.load(model_path))
     
     optimizer = optim.SGD(network.parameters(), lr=lr, weight_decay=0.01, momentum=0.9) # regularization done with weight_decay
     l1 = nn.MSELoss()
     
-    print_network(network, optimizer)
+    print_network(network)
 
     
     # Load the data
-    train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size)
+    train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True)
     #val_loader = torch.utils.data.DataLoader(val_set, batch_size=batch_size)
     
     '''
@@ -80,7 +83,7 @@ def training(data, model_path, new_model_path):
             optimizer.zero_grad()  # (Re)Set all the gradients to zero
 
             p, v = network(x)  # Infer a batch through the network
-            '''
+            
             print('=============================')
             print('x :')
             print(x.data.numpy())
@@ -98,8 +101,6 @@ def training(data, model_path, new_model_path):
             print(p)
             print('pi :')
             print(pi)
-            '''
-            p = p.long()
             
 
             loss = l1(z, v) + categorical_cross_entropy(pi, p)
@@ -205,7 +206,7 @@ class SquadroDataset(Dataset):
     def __len__(self):
         return len(self.z)
 
-def print_network(network, optimizer):
+def print_network(network):
     # Print model's state_dict
     mod_dict = network.state_dict()
     print("Model's state_dict:")
@@ -215,9 +216,9 @@ def print_network(network, optimizer):
         print(torch.sum(mod_dict[param_tensor]))
     
     # Print optimizer's state_dict
-    opt_dict = optimizer.state_dict()
-    print("Optimizer's state_dict:")
-    for var_name in opt_dict:
-        print(var_name, "\t", opt_dict[var_name])
+    #opt_dict = optimizer.state_dict()
+    #print("Optimizer's state_dict:")
+    #for var_name in opt_dict:
+    #    print(var_name, "\t", opt_dict[var_name])
         #print(opt_dict[var_name])   
         

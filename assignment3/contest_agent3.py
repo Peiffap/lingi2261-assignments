@@ -9,7 +9,7 @@ import logging
 import random
 
 run_folder = './run/'
-model_path = 'model/contest_agent.pt'
+model_path = 'model/contest_agent3.pt'
 
 class DeepNetwork(nn.Module):
     def __init__(self):
@@ -28,19 +28,11 @@ class DeepNetwork(nn.Module):
         
         self.linp1 = nn.Linear(nin, hidden_layers)
         self.linp2 = nn.Linear(hidden_layers, hidden_layers)
-        self.linp3 = nn.Linear(hidden_layers, hidden_layers)
-        self.linp4 = nn.Linear(hidden_layers, hidden_layers)
-        self.linp5 = nn.Linear(hidden_layers, hidden_layers)
-        self.linp6 = nn.Linear(hidden_layers, hidden_layers)
         self.linp7 = nn.Linear(hidden_layers, nout)
         self.batch_p = nn.BatchNorm1d(num_features=nout)
         
         self.linv1 = nn.Linear(nin, hidden_layers)
         self.linv2 = nn.Linear(hidden_layers, hidden_layers)
-        self.linv3 = nn.Linear(hidden_layers, hidden_layers)
-        self.linv4 = nn.Linear(hidden_layers, hidden_layers)
-        self.linv5 = nn.Linear(hidden_layers, hidden_layers)
-        self.linv6 = nn.Linear(hidden_layers, hidden_layers)
         self.linv7 = nn.Linear(hidden_layers, 1)
         self.batch_v = nn.BatchNorm1d(num_features=1)
         
@@ -59,22 +51,6 @@ class DeepNetwork(nn.Module):
         if ll > 1:
             ph = self.batch_hid(ph)
         ph = F.relu(ph)
-        ph = self.linp3(ph)
-        if ll > 1:
-            ph = self.batch_hid(ph)
-        ph = F.relu(ph)
-        ph = self.linp4(ph)
-        if ll > 1:
-            ph = self.batch_hid(ph)
-        ph = F.relu(ph)
-        ph = self.linp5(ph)
-        if ll > 1:
-            ph = self.batch_hid(ph)
-        ph = F.relu(ph)
-        ph = self.linp6(ph)
-        if ll > 1:
-            ph = self.batch_hid(ph)
-        ph = F.relu(ph)
         ph = self.linp7(ph)
         if ll > 1:
             ph = self.batch_p(ph)
@@ -85,22 +61,6 @@ class DeepNetwork(nn.Module):
             vh = self.batch_hid(vh)
         vh = F.relu(vh)
         vh = self.linv2(vh)
-        if ll > 1:
-            vh = self.batch_hid(vh)
-        vh = F.relu(vh)
-        vh = self.linv3(vh)
-        if ll > 1:
-            vh = self.batch_hid(vh)
-        vh = F.relu(vh)
-        vh = self.linv4(vh)
-        if ll > 1:
-            vh = self.batch_hid(vh)
-        vh = F.relu(vh)
-        vh = self.linv5(vh)
-        if ll > 1:
-            vh = self.batch_hid(vh)
-        vh = F.relu(vh)
-        vh = self.linv6(vh)
         if ll > 1:
             vh = self.batch_hid(vh)
         vh = F.relu(vh)

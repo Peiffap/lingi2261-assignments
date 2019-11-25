@@ -33,8 +33,6 @@ class DeepNetwork(nn.Module):
         self.linv = nn.Linear(hidden_layers, 1)
         self.batch_v = nn.BatchNorm1d(num_features=1)
         
-        self.soft = F.softmax()
-        
 
 
     def forward(self, x):
@@ -48,8 +46,8 @@ class DeepNetwork(nn.Module):
         
         ph = self.linp(x)
         if ll > 1:
-            ph = self.batch_hid(ph)
-        ph = self.soft(F.relu(ph)) # soft max done in loss function
+            ph = self.batch_p(ph)
+        ph = F.softmax(F.relu(ph), dim=-1) # soft max done in loss function
         
         vh = self.linv(x)
         if ll > 1:
@@ -77,7 +75,7 @@ class MyAgent(AlphaBetaAgent):
         self.start_time = 0          # Start time of the simulation
         self.total_time = 0          # Total time of the game
         self.mcts = None
-        self.MC_steps = 15           # Number of steps in MCTS
+        self.MC_steps = 30           # Number of steps in MCTS
         self.turn_time = 0.03        # Percentage of total time allowed for each turn
         self.hurry_time = 0.2        # Percentage of total time when it begins to hurry up
         self.epsilonMove = 0.03      # Probability to choose randomly the move
@@ -87,6 +85,7 @@ class MyAgent(AlphaBetaAgent):
         self.results = None          # Store results
         
         self.deepnetwork = DeepNetwork()
+        #torch.save(self.deepnetwork.state_dict(), 'model/dummyDNN.pt')
         self.deepnetwork.load_state_dict(torch.load(model_path))
         self.deepnetwork.eval()
         self.tensor_state = None
@@ -160,7 +159,7 @@ class MyAgent(AlphaBetaAgent):
         results = [self.id] + l1 + l2 + list(pi)
         self.results = np.array(results)
         self.results = np.transpose(np.reshape(self.results, newshape=[-1,1]))
-        print('{} {} {} {}'.format(self.id, l1, l2, pi))
+        #print('{} {} {} {}'.format(self.id, l1, l2, pi))
         
         return best_move
   
