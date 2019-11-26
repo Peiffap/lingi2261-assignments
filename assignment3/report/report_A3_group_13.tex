@@ -1,5 +1,5 @@
-\documentclass[en]{article}
-\usepackage[left=2.2cm,right=2.2cm,top=2.5cm,bottom=2.5cm]{geometry}
+\documentclass[journal,onecolumn]{IEEEtran}
+%\usepackage[left=2.2cm,right=2.2cm,top=2.5cm,bottom=2.5cm]{geometry}
 \usepackage[utf8]{inputenc}
 \usepackage{minted}
 \usepackage{booktabs}
@@ -15,74 +15,75 @@
 
 \newcommand{\py}[1]{\mintinline{python}{#1}}
 
-\title{Artificial Intelligence (\texttt{LINGI2261}) \\ Assignment 2 --- Group 13}
+\title{Artificial Intelligence (\texttt{LINGI2261}) \\ Assignment 3 --- Group 13}
 \author{Martin Braquet, Gilles Peiffer}
+\date{November 27, 2019}
 
 \begin{document}
 
 \maketitle
 
-\section{Alpha-Beta search}
+\section{Alpha-Beta Search}
 
-\subsection{MiniMax algorithm}
+\subsection{MiniMax Algorithm}
 
 \textcolor{red}{Verification + add details...}
 
 \begin{figure}[H]
  \centering
- \includegraphics[width=\textwidth]{MiniMax.png}
+ \includegraphics[width=\textwidth]{img/MiniMax.png}
  \caption{Minimax algorithm}
  \label{fig:minimax}
 \end{figure}
 
 
-\subsection{Alpha-Beta algorithm (left to right)}
+\subsection{Alpha-Beta Algorithm (Left To Right)}
 
 \textcolor{red}{Verification + add details...}
 
 \begin{figure}[H]
  \centering
- \includegraphics[width=\textwidth]{Alphabeta.png}
+ \includegraphics[width=\textwidth]{img/Alphabeta.png}
  \caption{Alpha-Beta algorithm (left to right)}
  \label{fig:alphabeta}
 \end{figure}
 
 
-\subsection{Alpha-Beta algorithm (right to left)}
+\subsection{Alpha-Beta Algorithm (Right To Left)}
 
 \textcolor{red}{Verification + add details...}
 
 \begin{figure}[H]
  \centering
- \includegraphics[width=\textwidth]{Alphabeta_reverse.png}
+ \includegraphics[width=\textwidth]{img/Alphabeta_reverse.png}
  \caption{Alpha-Beta algorithm (right to left)}
  \label{fig:alphabeta_reverse}
 \end{figure}
 
 
-\subsection{Alpha-Beta algorithm (ordered)}
+\subsection{Alpha-Beta Algorithm (Ordered)}
 
 \textcolor{red}{Verification + add details...}
 
 \begin{figure}[H]
  \centering
- \includegraphics[width=\textwidth]{Alphabeta_ordered.png}
+ \includegraphics[width=\textwidth]{img/Alphabeta_ordered.png}
  \caption{Alpha-Beta algorithm}
  \label{fig:alphabeta_ordered}
 \end{figure}
 
-\subsection{Alpha-Beta for more than two players}
+\subsection{Alpha-Beta For More Than Two Players}
+For games with more than two players, each node is associated with a tuple giving the value of each player for that state.
 
-For more than two players, each node is associated with a tuple giving the value of each player for that state.
+Tree pruning is possible if there is an upper bound on the sum of all components of this tuple, and if there is a lower bound on the values of each component.
+We define the sum $S$ as the global upper bound on the sum of all components of the \(N\)-tuple, and all components are assumed to be nonnegative. 
 
-Tree pruning is possible if there is an upper bound on the sum of all components of this tuple, and there is a lower bound on the values of each component. We define the sum $S$ as the global upper bound on the sum of all components of the N-tuple, and all components are
-assumed to be non-negative. 
-
-The condition \py{v <= alpha} and \py{v >= beta} is now given by \py{Best[Player] >= Bound} where the bound equals the sum $S$ minus the last best node of the upper layer. Indeed, let's take a player 1 from the upper layer which is ensured to get a value of at least $x$ for his layer: $(\ge x, \dots, \dots)$. Then, if player 2 from the lower layer unveils a child with more than $S - x$ for its own value, it will result of a score $(\le x, \ge S - x, \dots)$. Thus, all the remaining children can be dropped since player 1 knows that these children will be chosen by player 2 only if the value of player 1 is less than $x$ \cite{multiplayer}.
+The conditions \py{v <= alpha} and \py{v >= beta} are now given by \py{Best[Player] >= Bound} where the bound equals the sum $S$ minus the last best node of the upper layer.
+Indeed, let us take a player 1 from the upper layer which is ensured to get a value of at least $x$ for his layer: $(\ge x, \dots, \dots)$. Then, if player 2 from the lower layer unveils a child with more than $S - x$ for its own value, it will result of a score $(\le x, \ge S - x, \dots)$. Thus, all the remaining children can be dropped since player 1 knows that these children will be chosen by player 2 only if the value of player 1 is less than $x$ \cite{multiplayer}.
 
 \begin{figure}[H]
  \centering
- \includegraphics[width=0.7\textwidth]{multiplayer.png}
+ \includegraphics[width=0.7\textwidth]{img/multiplayer.png}
  \caption{Shallow pruning in three-player game tree \cite{multiplayer}}
  \label{fig:multiplayer}
 \end{figure}
@@ -90,14 +91,14 @@ The condition \py{v <= alpha} and \py{v >= beta} is now given by \py{Best[Player
 
 \section{Squadro}
 
-\subsection{Comparison of two evaluation functions}
+\subsection{Comparison Of Two Evaluation Functions}
 
 We expect that the new evaluation will work better since it takes into account the opponent, and it will thus prevent the opponent to win for example, by killing his pawns. The old agent is not able to deliberately kill the opponent, consequently decreasing his chances to win.
 
 However, the yellow player still always wins in the four possible starting configurations (which color, who plays first) because he begins with the best paws at the center, progressing by steps of three. The yellow player rapidly puts these paws on the other side, which are then a barrier for the progress of the opponent.
 Thus when the depth of the minimax algorithm is not sufficient, the new basic agent is not good enough to overcome the yellow advantage.
 
-\subsection{Cut-off function}
+\subsection{Cut-Off Function}
 
 The depth in the \py{minimax.py} implementation is the number of steps along the path from the root node to a node in the layer where we stop the tree search and evaluate the node.
 
@@ -128,7 +129,7 @@ The cut-off function, which reflects the moment when we need to stop the search,
  \item \py{time() - self.start_time > self.max_time}: the time elapsed during this search has exceeded the maximum allowed period for this search.
 \end{enumerate}
 
-\subsection{Evaluation function}
+\subsection{Evaluation Function}
 
 In the figure presented in the instructions, the yellow basic agent will play the pawn number 3 since it will lead to its highest evaluation: the sum of each pawn’s advancements. However, it is clear that it is not his best move since moving the pawn number 4 would give him the victory. A stronger heuristics has thus to take into account that a player wins if only four of his pawns come back home. In practice, we reduce this progress evaluation to only the four more advanced pawns, bringing a more cogent representation of the state.
 
