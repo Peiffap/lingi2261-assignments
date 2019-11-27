@@ -163,10 +163,42 @@ def evaluate(self, state):
 It creates for every player, a list with the advancements of each pawn.
 It sorts these lists and then sums over the four most advanced pawns for each, return the difference between these sums.
 
-\subsection{Contest}
-For the contest agent, we have opted for 
 
-\bibliographystyle{unsrt}
+\subsection{Contest}
+For the contest agent, we been interested in the AlphaGo Zero algorithm and how it managed to beat the algorithms, and thus all humans, without even feeding it with strategies or human games. It has learned everything by itself while it continuously played against him. Its architecture is very insightul and led us to build a strong model detailed below.
+
+\subsubsection*{Algorithm description}
+Our algorithm uses a deep neural network $DNN(s)$ for which all the parameters need to be carefully updated. This neural network takes as an input the raw board representation $s$ of the 10 pawns' positions, and outputs both move probabilities and a value, $(p, v) = DNN(s)$.
+The vector of move probabilities $p$ represents the probability of selecting each move $a$, $p_a = Pr(a|s)$. The value $v$ is a scalar evaluation, estimating the probability of the current player winning from position $s$. This neural network combines the roles of both policy network and value network into a single architecture %\cite{alphago}. 
+
+\subsubsection*{Deep neural network}
+The neural network consists of 3 residual fully connected blocks with batch normalization and rectifier nonlinearities (ReLU) (see Figure \ref{fig:DNN}. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{img/dnn.png}
+    \caption{Deep neural network}
+    \label{fig:DNN}
+\end{figure}
+
+\subsubsection*{Monte Carlo Tree Search}
+
+The neural network is trained from games of self-play by a reinforcement learning algorithm. In each position $s$, a Monte Carlo Tree Search is executed, guided by the neural network. The MCTS search outputs probabilities \(\pi\) of playing each move. These search probabilities usually select much stronger moves than the raw move probabilities $p$ of the neural network; MCTS may therefore be viewed as a powerful policy improvement operator. As shown in Figure \ref{fig:mcts}, this search algorithm consists to analyse the most promising moves, expanding the search tree based on random sampling of the search space. The application of Monte Carlo tree search in games is based on many playouts also called roll-outs. In each playout, the game is played out to the very end by selecting moves at random. The final game result of each playout is then used to weight the nodes in the game tree so that better nodes are more likely to be chosen in future playouts.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{img/mcts.png}
+    \caption{Monte Carlo Tree Search}
+    \label{fig:mcts}
+\end{figure}
+
+\subsubsection*{Simulations and results}
+
+Although this algorithm is very powerful, it is strongly limited by the computation power available in the common machines. Indeed, training such a network has been very difficult due to the computation required to play each game. We thus received few samples of data, and these samples could not allow our agent to reach a top human player level.
+
+The algorithm has been tested 100 times against the main previous agents. The results give 95\% of victory against the random agent, 55\% against the basic agent, and 25\% against the smart agent. Even if these results are not as good as expected, it is important to notice the very original method that we have used. It is thus still very convincing to see pretty good results with network that has never been trained by ourselves and without any evaluation function specific to this game.
+
+%\bibliographystyle{srt}
 \bibliography{bib.bib}
 
 \end{document}
