@@ -24,35 +24,30 @@
 \maketitle
 
 \section{Alpha-Beta Search}
-
+Figure~\ref{fig:minimax} can be obtained by applying the minimax algorithm to the tree given in the statement.
 \subsection{MiniMax Algorithm}
-
-\textcolor{red}{Verification + add details...}
-
 \begin{figure}[H]
  \centering
  \includegraphics[width=\textwidth]{img/MiniMax.png}
  \caption{Minimax algorithm}
  \label{fig:minimax}
 \end{figure}
-
+One notices that nodes in the ``MAX'' nodes simply take on the highest value among their child nodes, whereas ``MIN'' nodes take on the lowest value among their child nodes.
 
 \subsection{Alpha-Beta Algorithm (Left To Right)}
-
-\textcolor{red}{Verification + add details...}
-
+Using a technique called ``Alpha-Beta pruning'', the number of nodes which have to be explored can be reduced (though it stays exponential in the worst case).
+This is shown in Figures~\ref{fig:alphabeta} and \ref{fig:alphabeta_reverse}.
 \begin{figure}[H]
  \centering
  \includegraphics[width=\textwidth]{img/Alphabeta.png}
  \caption{Alpha-Beta algorithm (left to right)}
  \label{fig:alphabeta}
 \end{figure}
-
+Every red cross denotes a pruning operation.
+For example, the two leftmost prunings are possible because no matter what values \(x\) and \(y\), they give, their parent node is going to take on value \(\min\{-2, x, y\} \le -2 < 2\), which is the value which is going to be conserved when moving up to the ``MAX'' node on the row above.
+The values of \(\alpha\) and \(\beta\) are used to keep track of when a subtree can be pruned.
 
 \subsection{Alpha-Beta Algorithm (Right To Left)}
-
-\textcolor{red}{Verification + add details...}
-
 \begin{figure}[H]
  \centering
  \includegraphics[width=\textwidth]{img/Alphabeta_reverse.png}
@@ -62,9 +57,9 @@
 
 
 \subsection{Alpha-Beta Algorithm (Ordered)}
-
-\textcolor{red}{Verification + add details...}
-
+Using this pruning algorithm, it is possible to find an ordering of the nodes which, when used to determine which nodes are explored first, minimizes the amount of nodes that need to be explored.
+This optimal tree is shown in Figure~\ref{fig:alphabeta_ordered}, assuming a left-to-right exploration.
+To obtain this tree, one needs to order nodes in ascending order on MAX levels and in descending order on MIN levels.
 \begin{figure}[H]
  \centering
  \includegraphics[width=\textwidth]{img/Alphabeta_ordered.png}
@@ -79,7 +74,7 @@ Tree pruning is possible if there is an upper bound on the sum of all components
 We define the sum $S$ as the global upper bound on the sum of all components of the \(N\)-tuple, and all components are assumed to be nonnegative. 
 
 The conditions \py{v <= alpha} and \py{v >= beta} are now given by \py{Best[Player] >= Bound} where the bound equals the sum $S$ minus the last best node of the upper layer.
-Indeed, let us take a player 1 from the upper layer which is ensured to get a value of at least $x$ for his layer: $(\ge x, \dots, \dots)$. Then, if player 2 from the lower layer unveils a child with more than $S - x$ for its own value, it will result of a score $(\le x, \ge S - x, \dots)$. Thus, all the remaining children can be dropped since player 1 knows that these children will be chosen by player 2 only if the value of player 1 is less than $x$ \cite{multiplayer}.
+Indeed, let us take a player 1 from the upper layer which is ensured to get a value of at least $x$ for his layer: $(\ge x, \dots, \dots)$. Then, if player 2 from the lower layer unveils a child with more than $S - x$ for its own value, it will result in a score of $(\le x, \ge S - x, \dots)$. Thus, all the remaining children can be dropped since player 1 knows that these children will be chosen by player 2 only if the value of player 1 is less than $x$. \cite{multiplayer}
 
 \begin{figure}[H]
  \centering
@@ -92,37 +87,42 @@ Indeed, let us take a player 1 from the upper layer which is ensured to get a va
 \section{Squadro}
 
 \subsection{Comparison Of Two Evaluation Functions}
+One would expect that the new evaluation will work better since it takes into account the opponent, and will thus try to prevent them from winning, for example, by killing their pawns.
+The old agent is not able to deliberately kill the opponent, consequently decreasing its chances of winning.
 
-We expect that the new evaluation will work better since it takes into account the opponent, and it will thus prevent the opponent to win for example, by killing his pawns. The old agent is not able to deliberately kill the opponent, consequently decreasing his chances to win.
-
-However, the yellow player still always wins in the four possible starting configurations (which color, who plays first) because he begins with the best paws at the center, progressing by steps of three. The yellow player rapidly puts these paws on the other side, which are then a barrier for the progress of the opponent.
-Thus when the depth of the minimax algorithm is not sufficient, the new basic agent is not good enough to overcome the yellow advantage.
+However, the yellow player still always wins in the four possible starting configurations because it begins with the best pawns at the center, progressing by steps of three.
+The yellow player rapidly puts these pawns on the other side, which then form a barrier for the opponent's progress.
+Thus, when the depth of the minimax algorithm is not sufficient, the new basic agent is not good enough to overcome the yellow player's innate advantage.
 
 \subsection{Cut-Off Function}
+The \emph{depth} in the \py{minimax.py} implementation is the number of steps along the path from the root node to a node in the layer where we stop the tree search and evaluate the node.
 
-The depth in the \py{minimax.py} implementation is the number of steps along the path from the root node to a node in the layer where we stop the tree search and evaluate the node.
+When the depth increases, the new basic agent is able to win even when playing as the red player because it can now predict and find a counter-attack against the yellow barrier.
+The new basic agent wins for all starting configurations when the depth is higher than six.
 
-When the depth increases, the new basic agent is able to win even when he is the red player because he can now predict and find a counterattack against the yellow barrier. The new basic agent wins for all starting configurations when the depth is higher than 6.
-
-Since the Squadro contest allows a limited time, we need to select the time allowed for each play.
-There exist different methods to choose the maximum time allowed for each search, but an interesting one is to decrease the allowed time troughout the game in order not be out of time in the end. Indeed, we split the time for each play $t_{p}$ following this formula:
+Since the Squadro contest has a time limit, one needs to select the time allowed for each move.
+There exist different methods to choose the maximum time allowed for each search, but an interesting option is to decrease the allotted time throughout the game in order to prevent exceeding the limit.
+Indeed, one can split the time for each move $t_\textnormal{move}$ according to the next formula:
 \[
-    t_{p} = 
+    t_\textnormal{move} = 
     \left\{
     \begin{array}{ll}
-      0.2 \: t_{l}^2 & \mathrm{if}\quad t_{l}\leq \SI{100}{s} \\
-      20 & \mathrm{otherwise} \\
+      0.2 \: t_\textnormal{left}^2, & \mathrm{if}\quad t_\textnormal{left}\leq \min\{\SI{100}{s}, t_\textnormal{total}/3\}, \\
+      20, & \mathrm{otherwise.} \\
     \end{array} 
     \right.
 \]
-where $t_l$ is the remaining time allowed for the considered player. Thus, the time allowed goes well to zero as the remaining time drops.
+where $t_\textnormal{left}$ is the remaining amount of time for the considered player and \(t_\textnormal{total}\) is the initial time limit.
+One can notice that the allowed time goes to zero as the remaining time drops, as expected.
 
-Using iterative deepening is a good choice to stop the algorithm during its search, it consists to first search 1 ply deep and record the best path of moves. Then it searches 1 ply deeper by increasing the max depth in the manimax algorithm, and could use the recorded path to inform move ordering. In fact, this method only adds a constant fraction to the total search time, which can be compensated by the better move ordering.
+Using iterative deepening is a good choice to stop the algorithm during its search.
+Iterative deepening depth-first search is a search method which iteratively performs a depth-limited depth-first search using the minimax algorithm, starting from a limit depth of one, up to some predefined value.
+By recording the optimal path at each depth, the moves can be ordered in such a way as to minimize the total search time, coompensating for the (asymptotically negligible) cost of searching with lower depth limits.
 
-The depth is chosen so that the algorithm gives good results, for instance 8. But when time runs out, the program returns the move selected by the deepest completed search.
+The depth is chosen so that the algorithm gives good results, for instance eight.
+However, when time runs out, the program returns the move selected by the deepest completed search.
 
-The cut-off function, which reflects the moment when we need to stop the search, is activated when one of these three conditions is true:
-
+The cut-off function, which reflects the moment when we need to stop the search, is activated when one of the following three conditions is true:
 \begin{enumerate}
  \item \py{depth > self.current_depth}: the depth of the analyzed node is higher than the maximum depth,
  \item \py{state.game_over_check()}: the game is over,
@@ -130,11 +130,17 @@ The cut-off function, which reflects the moment when we need to stop the search,
 \end{enumerate}
 
 \subsection{Evaluation Function}
+In the figure presented in the instructions, the yellow basic agent will move its pawn number 3 since it will lead to the highest value of its evaluation function: the sum over all pawns of each's advancement.
+However, it is clear that this is not the best possible move, since moving pawn number 4 would make it win the game.
+A stronger heuristic thus has to take into account that a player wins if only four of their pawns return to their initial position.
+In practice, we reduce this progress evaluation to only the four most advanced pawns, bringing a more cogent representation of the state.
 
-In the figure presented in the instructions, the yellow basic agent will play the pawn number 3 since it will lead to its highest evaluation: the sum of each pawn’s advancements. However, it is clear that it is not his best move since moving the pawn number 4 would give him the victory. A stronger heuristics has thus to take into account that a player wins if only four of his pawns come back home. In practice, we reduce this progress evaluation to only the four more advanced pawns, bringing a more cogent representation of the state.
-
-\textcolor{red}{Are there any other weak points of the evaluation functions of your basic agents?}
-
+Other weak points of the evaluation function of the basic agents are
+\begin{itemize}
+	\item \textcolor{red}{To complete}
+	\item 
+	\item 
+\end{itemize}
 In addition to the sum of each pawn’s advancements, the following features are detailed below.
 
 \begin{itemize}
@@ -143,9 +149,10 @@ In addition to the sum of each pawn’s advancements, the following features are
  \item 
 \end{itemize}
 
-
+The improved evaluation function
 
 \subsection{Contest}
+For the contest agent, we have opted for 
 
 \bibliographystyle{unsrt}
 \bibliography{bib.bib}
