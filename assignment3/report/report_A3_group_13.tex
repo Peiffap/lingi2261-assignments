@@ -1,6 +1,7 @@
 \documentclass[journal,onecolumn]{IEEEtran}
 %\usepackage[left=2.2cm,right=2.2cm,top=2.5cm,bottom=2.5cm]{geometry}
 \usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
 \usepackage{minted}
 \usepackage{booktabs}
 \usepackage{commath}
@@ -165,14 +166,14 @@ It sorts these lists and then sums over the four most advanced pawns for each, r
 
 
 \subsection{Contest}
-For the contest agent, we been interested in the AlphaGo Zero algorithm and how it managed to beat the algorithms, and thus all humans, without even feeding it with strategies or human games. It has learned everything by itself while it continuously played against him. Its architecture is very insightul and led us to build a strong model detailed below.
+For the contest agent, we been interested in the AlphaGo Zero algorithm and how it managed to beat all other algorithms, and thus all humans, without even feeding it with strategies or human games. It has learned everything by itself while it continuously played against him. Its architecture is very insightul and led us to build a strong model detailed below.
 
 \subsubsection*{Algorithm description}
 Our algorithm uses a deep neural network $DNN(s)$ for which all the parameters need to be carefully updated. This neural network takes as an input the raw board representation $s$ of the 10 pawns' positions, and outputs both move probabilities and a value, $(p, v) = DNN(s)$.
-The vector of move probabilities $p$ represents the probability of selecting each move $a$, $p_a = Pr(a|s)$. The value $v$ is a scalar evaluation, estimating the probability of the current player winning from position $s$. This neural network combines the roles of both policy network and value network into a single architecture %\cite{alphago}. 
+The vector of move probabilities $p$ represents the probability of selecting each move $a$, $p_a = Pr(a|s)$. The value $v$ is a scalar evaluation, estimating the probability of the current player winning from position $s$. This neural network combines the roles of both policy network and value network into a single architecture \cite{alphago}. 
 
 \subsubsection*{Deep neural network}
-The neural network consists of 3 residual fully connected blocks with batch normalization and rectifier nonlinearities (ReLU) (see Figure \ref{fig:DNN}. 
+The neural network consists of 3 residual fully connected blocks with batch normalization and rectifier nonlinearities (ReLU) (see Figure \ref{fig:DNN}). 
 
 \begin{figure}[H]
     \centering
@@ -196,9 +197,14 @@ The neural network is trained from games of self-play by a reinforcement learnin
 
 Although this algorithm is very powerful, it is strongly limited by the computation power available in the common machines. Indeed, training such a network has been very difficult due to the computation required to play each game. We thus received few samples of data, and these samples could not allow our agent to reach a top human player level.
 
-The algorithm has been tested 100 times against the main previous agents. The results give 95\% of victory against the random agent, 55\% against the basic agent, and 25\% against the smart agent. Even if these results are not as good as expected, it is important to notice the very original method that we have used. It is thus still very convincing to see pretty good results with network that has never been trained by ourselves and without any evaluation function specific to this game.
+The algorithm has been tested 100 times against the main previous agents. The results give 95\% of victory against the random agent, 55\% against the basic agent, and 25\% against the smart agent. Even if these results are not as good as expected, it is important to notice the very original method that we have used. It is thus still very convincing to see pretty good results with network a that has never been trained by ourselves and without any evaluation function specific to this game.
 
-%\bibliographystyle{srt}
-\bibliography{bib.bib}
+\begin{thebibliography}{9}
+\bibitem{multiplayer}
+Richard E. Korf, Multi-player alpha-beta pruning, Artificial Intelligence 48 (1991) 99--111, 1990.
+
+\bibitem{alphago}
+Silver, D., Schrittwieser, J., Simonyan, K. et al., Mastering the game of Go without human knowledge, Nature 550, 354–359, 2017.
+\end{thebibliography}
 
 \end{document}
