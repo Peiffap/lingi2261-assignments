@@ -1,48 +1,52 @@
 from squadro_state import SquadroState
 import numpy as np
 import torch
-
-text = 'contest_agent3'
-# text = 'model200neurons_7layers'
-model_path     = 'model/{}.pt'.format(text)
-other_model_path = 'model/{}_initialized.pt'.format(text) #'model/{}_old_for_test.pt'.format(text)
-
-ai0 = text
-ai1 = ai0
-first = 0
+import random
+import argparse
 
 """
 Runs the game
 """
-def main(agent_0, agent_1, first):
+def main(agent_0, agent_1):
+
     victory = 0
     for i in range(1000):
-        (results, winner) = game(agent_0, agent_1, first, i)
+        (results, winner) = game(agent_0, agent_1, i)
         victory += 1 - winner # number of victories for player 0 (main)
         print('Victory average for the main model VS other model', i, ':', 100 * victory / (i+1), '%')
 
-def game(agent_0, agent_1, first, i):
+def game(agent_0, agent_1, i):
+
+    model_path       = 'model/{}.pt'.format(agent_0)
+    other_model_path = 'model/{}.pt'.format(agent_1)
     
     results = 0
     init = 1
 
     # Initialisation
     cur_state = SquadroState()
-    if first != -1:
-        cur_state.cur_player = first
-    agents = [getattr(__import__(agent_0), 'MyAgent')(), getattr(__import__(agent_1), 'MyAgent')()]
+    
+    agents = [getattr(__import__(agent_0), 'MyAgent')(), getattr(__import__(agent_0), 'MyAgent')()]
+    
+    DNN_main_player = 0 if i % 2 == 0 else 1
+    cur_state.cur_player = 0 if (2 * i) % 2 == 0 else 1
+    
+    print(DNN_main_player, cur_state.cur_player)
+    
     agents[0].set_id(0)
     agents[1].set_id(1)
-    agents[1].set_model_path(other_model_path)
+    agents[1 - DNN_main_player].set_model_path(other_model_path)
+    '''
     agents[0].epsilonMCTS = 0
     agents[1].epsilonMCTS = 0
+    '''
     agents[0].epsilonMove = 0
     agents[1].epsilonMove = 0
     if i == 0:
         print('Network 0 (main) -------------------------------------------------------')
-        print_network(agents[0].deepnetwork)
+        print_network(agents[DNN_main_player].deepnetwork)
         print('Network 1 (other) -------------------------------------------------------')
-        print_network(agents[1].deepnetwork)
+        print_network(agents[1 - DNN_main_player].deepnetwork)
 
     last_action = None
     
@@ -64,7 +68,7 @@ def game(agent_0, agent_1, first, i):
         else:
             results = np.append(results, agents[cur_player].results, 0)
 
-    return (results, cur_player)
+    return (results, abs(DNN_main_player - cur_player))
 
 """
 Get an action from player with a timeout.
@@ -84,4 +88,12 @@ def print_network(network):
 
 if __name__ == "__main__":
 
-	main(ai0, ai1, first)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-ai0", help="path to the ai that will play as player 0")
+    parser.add_argument("-ai1", help="path to the ai that will play as player 0")
+    args = parser.parse_args()
+    
+    ai0 = args.ai0 if args.ai0 != None else "error"
+    ai1 = args.ai1 if args.ai1 != None else "error"
+
+    main(ai0, ai1)

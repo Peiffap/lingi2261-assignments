@@ -9,7 +9,7 @@ import logging
 import random
 
 run_folder = './run/'
-model_path = 'model/contestDNN.pt'
+model_path = 'model/contest_agent2.pt'
 
 class DeepNetwork(nn.Module):
     def __init__(self):
@@ -22,84 +22,52 @@ class DeepNetwork(nn.Module):
         
         nin = 11             # 11 inputs: player id, 5 first numbers for the player 0 and five numbers for the player 1
         nout = 5             # 5 outputs: probability to choose one of the 5 actions
-        hidden_layers = 200  # Size of the 7 hidden layers
+        hidden_layers = 500  # Size of the 7 hidden layers
 
-        self.lin1 = nn.Linear(nin, hidden_layers)
-        self.lin2 = nn.Linear(hidden_layers, hidden_layers)
-        self.lin3 = nn.Linear(hidden_layers, hidden_layers)
-        self.lin4 = nn.Linear(hidden_layers, hidden_layers)
-        self.lin5 = nn.Linear(hidden_layers, hidden_layers)
         self.batch_hid = nn.BatchNorm1d(num_features=hidden_layers)
+        
+        self.lin = nn.Linear(nin, hidden_layers)
         
         self.linp1 = nn.Linear(hidden_layers, hidden_layers)
         self.linp2 = nn.Linear(hidden_layers, hidden_layers)
-        self.linp3 = nn.Linear(hidden_layers, nout)
-        self.batch_p = nn.BatchNorm1d(num_features=nout)
+        self.linp3 = nn.Linear(hidden_layers, hidden_layers)
+        self.linp4 = nn.Linear(hidden_layers, hidden_layers)
+        self.linp5 = nn.Linear(hidden_layers, hidden_layers)
+        self.linp8 = nn.Linear(hidden_layers, nout)
         
         self.linv1 = nn.Linear(hidden_layers, hidden_layers)
         self.linv2 = nn.Linear(hidden_layers, hidden_layers)
-        self.linv3 = nn.Linear(hidden_layers, 1)
-        self.batch_v = nn.BatchNorm1d(num_features=1)
+        self.linv6 = nn.Linear(hidden_layers, 1)
         
 
 
     def forward(self, x):
         #print(x.shape)
-        l = x.size()
-        ll = len(l)
-        x = self.lin1(x)
-        if ll > 1:
-            x = self.batch_hid(x)
-        x = F.relu(x)
-        x = self.lin2(x)
-        if ll > 1:
-            x = self.batch_hid(x)
-        x = F.relu(x)
-        x = self.lin3(x)
-        if ll > 1:
-            x = self.batch_hid(x)
-        x = F.relu(x)
-        x = self.lin4(x)
-        if ll > 1:
-            x = self.batch_hid(x)
-        x = F.relu(x)
-        x = self.lin5(x)
-        if ll > 1:
-            x = self.batch_hid(x)
-        x = F.relu(x)
+        l = len(x.size())
         
-        ph = self.linp1(x)
-        if ll > 1:
-            ph = self.batch_hid(ph)
-        ph = F.relu(ph)
-        ph = self.linp2(x)
-        if ll > 1:
-            ph = self.batch_hid(ph)
-        ph = F.relu(ph)
-        ph = self.linp3(x)
-        if ll > 1:
-            ph = self.batch_p(ph)
-        ph = F.softmax(F.relu(ph), dim=0) # soft max done in loss function
+        if l == 1:
+            x = x.unsqueeze(0)
         
-        vh = self.linv1(x)
-        if ll > 1:
-            vh = self.batch_hid(vh)
-        vh = self.linv2(x)
-        if ll > 1:
-            vh = self.batch_hid(vh)
-        vh = F.relu(vh)
-        vh = self.linv3(x)
-        if ll > 1:
-            vh = self.batch_v(vh)
-        vh = F.relu(vh)
+        x = F.relu(self.batch_hid(self.lin(x)))
+        
+        ph = F.relu(self.batch_hid(self.linp1(x)))
+        ph = F.relu(self.batch_hid(self.linp2(ph)))
+        ph = F.relu(self.batch_hid(self.linp3(ph)))
+        ph = F.relu(self.batch_hid(self.linp4(ph)))
+        ph = F.relu(self.batch_hid(self.linp5(ph)))
+        ph = self.linp8(ph)
+        softph = F.softmax(ph, dim=-1)
+        
+        vh = F.relu(self.batch_hid(self.linv1(x)))
+        vh = F.relu(self.batch_hid(self.linv2(vh)))
+        vh = self.linv6(vh)
         
         #print(x)
-        #print(F.log_softmax(x)) 
         #print(ph.shape)
         #print(vh.shape)
         #print(vh)
         #print(ph)
-        return (ph, vh)
+        return (softph, vh)
 
 """
 Contest agent
@@ -113,7 +81,7 @@ class MyAgent(AlphaBetaAgent):
         self.start_time = 0          # Start time of the simulation
         self.total_time = 0          # Total time of the game
         self.mcts = None
-        self.MC_steps = 50           # Number of steps in MCTS
+        self.MC_steps = 70           # Number of steps in MCTS
         self.turn_time = 0.03        # Percentage of total time allowed for each turn
         self.hurry_time = 0.2        # Percentage of total time when it begins to hurry up
         self.epsilonMove = 0.03      # Probability to choose randomly the move
@@ -124,8 +92,7 @@ class MyAgent(AlphaBetaAgent):
         
         self.deepnetwork = DeepNetwork()
         #torch.save(self.deepnetwork.state_dict(), model_path)
-        self.deepnetwork.load_state_dict(torch.load(model_path))
-        self.deepnetwork.eval()
+        self.set_model_path(model_path)
         self.tensor_state = None
 
         #for param in self.deepnetwork.parameters():
@@ -138,8 +105,8 @@ class MyAgent(AlphaBetaAgent):
         return 'Group 13'
     
     
-    def set_model_path(self, model_path):
-        self.deepnetwork.load_state_dict(torch.load(model_path))
+    def set_model_path(self, path):
+        self.deepnetwork.load_state_dict(torch.load(path))
         self.deepnetwork.eval()
     
     """
@@ -323,7 +290,7 @@ class MyAgent(AlphaBetaAgent):
         l2 = [state.get_pawn_advancement(1 - state.cur_player, pawn) for pawn in [0, 1, 2, 3, 4]]
         x = torch.FloatTensor([self.id] + l1 + l2)
         ph, vh = self.deepnetwork(x)
-        ph = ph.data.numpy()
+        ph = ph.data.numpy()[0,:]
         vh = np.float(vh.data.numpy())
         return (ph, vh) # Deep neural network evaluation
     
@@ -381,7 +348,8 @@ class MCTS():
 
             for idx, (action, edge) in enumerate(currentNode.edges):
 
-                U = self.cpuct * ((1-epsilon) * edge.stats['P'] + epsilon * nu[idx]) * np.sqrt(Nb) / (1 + edge.stats['N'])
+                #U = self.cpuct * ((1-epsilon) * edge.stats['P'] + epsilon * nu[idx]) * np.sqrt(Nb) / (1 + edge.stats['N'])
+                U = self.cpuct * np.sqrt(Nb) / (1 + edge.stats['N'])
                     
                 Q = edge.stats['Q']
 

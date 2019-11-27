@@ -22,100 +22,46 @@ class DeepNetwork(nn.Module):
         
         nin = 11             # 11 inputs: player id, 5 first numbers for the player 0 and five numbers for the player 1
         nout = 5             # 5 outputs: probability to choose one of the 5 actions
-        hidden_layers = 200  # Size of the 7 hidden layers
+        hidden_layers = 200  # Size of the hidden layers
 
         self.batch_hid = nn.BatchNorm1d(num_features=hidden_layers)
         
-        self.linp1 = nn.Linear(nin, hidden_layers)
-        self.linp2 = nn.Linear(hidden_layers, hidden_layers)
-        self.linp3 = nn.Linear(hidden_layers, hidden_layers)
-        self.linp4 = nn.Linear(hidden_layers, hidden_layers)
-        self.linp5 = nn.Linear(hidden_layers, hidden_layers)
-        self.linp6 = nn.Linear(hidden_layers, hidden_layers)
-        self.linp7 = nn.Linear(hidden_layers, nout)
-        self.batch_p = nn.BatchNorm1d(num_features=nout)
+        self.lin = nn.Linear(nin, hidden_layers)
         
-        self.linv1 = nn.Linear(nin, hidden_layers)
+        self.linp1 = nn.Linear(hidden_layers, hidden_layers)
+        self.linp2 = nn.Linear(hidden_layers, hidden_layers)
+        self.linp3 = nn.Linear(hidden_layers, nout)
+        
+        self.linv1 = nn.Linear(hidden_layers, hidden_layers)
         self.linv2 = nn.Linear(hidden_layers, hidden_layers)
-        self.linv3 = nn.Linear(hidden_layers, hidden_layers)
-        self.linv4 = nn.Linear(hidden_layers, hidden_layers)
-        self.linv5 = nn.Linear(hidden_layers, hidden_layers)
-        self.linv6 = nn.Linear(hidden_layers, hidden_layers)
-        self.linv7 = nn.Linear(hidden_layers, 1)
-        self.batch_v = nn.BatchNorm1d(num_features=1)
+        self.linv3 = nn.Linear(hidden_layers, 1)
         
 
 
     def forward(self, x):
         #print(x.shape)
-        l = x.size()
-        ll = len(l)
+        l = len(x.size())
         
-        ph = self.linp1(x)
-        if ll > 1:
-            ph = self.batch_hid(ph)
-        ph = F.relu(ph)
-        ph = self.linp2(ph)
-        if ll > 1:
-            ph = self.batch_hid(ph)
-        ph = F.relu(ph)
+        if l == 1:
+            x = x.unsqueeze(0)
+        
+        x = F.relu(self.batch_hid(self.lin(x)))
+        
+        ph = F.relu(self.batch_hid(self.linp1(x)))
+        ph = F.relu(self.batch_hid(self.linp2(ph)))
         ph = self.linp3(ph)
-        if ll > 1:
-            ph = self.batch_hid(ph)
-        ph = F.relu(ph)
-        ph = self.linp4(ph)
-        if ll > 1:
-            ph = self.batch_hid(ph)
-        ph = F.relu(ph)
-        ph = self.linp5(ph)
-        if ll > 1:
-            ph = self.batch_hid(ph)
-        ph = F.relu(ph)
-        ph = self.linp6(ph)
-        if ll > 1:
-            ph = self.batch_hid(ph)
-        ph = F.relu(ph)
-        ph = self.linp7(ph)
-        if ll > 1:
-            ph = self.batch_p(ph)
-        ph = F.softmax(F.relu(ph), dim=-1) # soft max done in loss function
+        softph = F.softmax(ph, dim=-1)
         
-        vh = self.linv1(x)
-        if ll > 1:
-            vh = self.batch_hid(vh)
-        vh = F.relu(vh)
-        vh = self.linv2(vh)
-        if ll > 1:
-            vh = self.batch_hid(vh)
-        vh = F.relu(vh)
+        vh = F.relu(self.batch_hid(self.linv1(x)))
+        vh = F.relu(self.batch_hid(self.linv2(vh)))
         vh = self.linv3(vh)
-        if ll > 1:
-            vh = self.batch_hid(vh)
-        vh = F.relu(vh)
-        vh = self.linv4(vh)
-        if ll > 1:
-            vh = self.batch_hid(vh)
-        vh = F.relu(vh)
-        vh = self.linv5(vh)
-        if ll > 1:
-            vh = self.batch_hid(vh)
-        vh = F.relu(vh)
-        vh = self.linv6(vh)
-        if ll > 1:
-            vh = self.batch_hid(vh)
-        vh = F.relu(vh)
-        vh = self.linv7(vh)
-        if ll > 1:
-            vh = self.batch_v(vh)
-        vh = F.relu(vh)
         
         #print(x)
-        #print(F.log_softmax(x)) 
         #print(ph.shape)
         #print(vh.shape)
         #print(vh)
         #print(ph)
-        return (ph, vh)
+        return (softph, vh)
 
 """
 Contest agent
@@ -129,7 +75,7 @@ class MyAgent(AlphaBetaAgent):
         self.start_time = 0          # Start time of the simulation
         self.total_time = 0          # Total time of the game
         self.mcts = None
-        self.MC_steps = 50           # Number of steps in MCTS
+        self.MC_steps = 70           # Number of steps in MCTS
         self.turn_time = 0.03        # Percentage of total time allowed for each turn
         self.hurry_time = 0.2        # Percentage of total time when it begins to hurry up
         self.epsilonMove = 0.03      # Probability to choose randomly the move
@@ -140,8 +86,7 @@ class MyAgent(AlphaBetaAgent):
         
         self.deepnetwork = DeepNetwork()
         #torch.save(self.deepnetwork.state_dict(), model_path)
-        self.deepnetwork.load_state_dict(torch.load(model_path))
-        self.deepnetwork.eval()
+        self.set_model_path(model_path)
         self.tensor_state = None
 
         #for param in self.deepnetwork.parameters():
@@ -193,7 +138,9 @@ class MyAgent(AlphaBetaAgent):
         
         pi, values = self.getAV()
         
-         #### pick the action (stochastically with prob = epsilon)
+        #print(pi)
+        
+        #### pick the action (stochastically with prob = epsilon)
         tau = self.tau if random.uniform(0, 1) < self.epsilonMove else 0
         best_move, value = self.chooseAction(pi, values, tau)
 
@@ -229,6 +176,7 @@ class MyAgent(AlphaBetaAgent):
         leaf, done, breadcrumbs = self.mcts.moveToLeaf(self)
         #render(leaf.state, #logger_mcts)
         
+        
         #print_state(leaf.state)
 
         ##### EVALUATE THE LEAF NODE with deep neural network + add edges to leaf node
@@ -243,8 +191,6 @@ class MyAgent(AlphaBetaAgent):
     def evaluateLeaf(self, leaf, done):
 
         #logger_mcts.info('------EVALUATING LEAF------')
-
-        value = 1
 
         if done == 0:
     
@@ -268,6 +214,9 @@ class MyAgent(AlphaBetaAgent):
 
                 newEdge = Edge(leaf, node, probs[idx], action)
                 leaf.edges.append((action, newEdge))
+                
+        else: # End of game leaf
+            value = 1 if leaf.state.cur_player == self.id else -1
 
         return value
     
@@ -301,8 +250,6 @@ class MyAgent(AlphaBetaAgent):
       
         newState = state.copy()
         newState.apply_action(a)
-
-        value = 0
         
         done = 1 if self.cutoff(newState, self.max_depth) else 0
 
@@ -337,9 +284,9 @@ class MyAgent(AlphaBetaAgent):
     def evaluate(self, state):
         l1 = [state.get_pawn_advancement(state.cur_player, pawn) for pawn in [0, 1, 2, 3, 4]]
         l2 = [state.get_pawn_advancement(1 - state.cur_player, pawn) for pawn in [0, 1, 2, 3, 4]]
-        x = torch.FloatTensor([self.id] + l1 + l2)
+        x = torch.FloatTensor([state.cur_player] + l1 + l2)
         ph, vh = self.deepnetwork(x)
-        ph = ph.data.numpy()
+        ph = ph.data.numpy()[0,:]
         vh = np.float(vh.data.numpy())
         return (ph, vh) # Deep neural network evaluation
     
@@ -397,8 +344,10 @@ class MCTS():
 
             for idx, (action, edge) in enumerate(currentNode.edges):
 
-                U = self.cpuct * ((1-epsilon) * edge.stats['P'] + epsilon * nu[idx]) * np.sqrt(Nb) / (1 + edge.stats['N'])
-                    
+                
+                #U = self.cpuct * ((1-epsilon) * edge.stats['P'] + epsilon * nu[idx]) * np.sqrt(Nb) / (1 + edge.stats['N'])
+                U = self.cpuct * np.sqrt(Nb) / (1 + edge.stats['N'])
+                   
                 Q = edge.stats['Q']
 
                 #logger_mcts.info('action: %d (%d)... N = %d, P = %f, nu = %f, adjP = %f, W = %f, Q = %f, U = %f, Q+U = %f'
