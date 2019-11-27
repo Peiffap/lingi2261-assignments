@@ -135,21 +135,33 @@ However, it is clear that this is not the best possible move, since moving pawn 
 A stronger heuristic thus has to take into account that a player wins if only four of their pawns return to their initial position.
 In practice, we reduce this progress evaluation to only the four most advanced pawns, bringing a more cogent representation of the state.
 
-Other weak points of the evaluation function of the basic agents are
+The weak points of the evaluation function of the basic agents are
 \begin{itemize}
-	\item \textcolor{red}{To complete}
-	\item 
-	\item 
-\end{itemize}
-In addition to the sum of each pawn’s advancements, the following features are detailed below.
-
-\begin{itemize}
- \item \textcolor{red}{To complete}
- \item 
- \item 
+	\item The first basic agent always tries to maximize its own total advancement, meaning that it does not take into account changes to the total advancement of the opponent.
+	The second basic agent solves this by trying to maximize the difference between the total advancements.
+	\item Both basic agents fail to recognize a potential game-winning move, which is solved in the smart agent by adding the requirement on the number of pawns which need to return to their initial position to win the game.
 \end{itemize}
 
-The improved evaluation function
+In addition to the sum of each pawn’s advancements, the following features are detailed below: the smart agent looks at
+\begin{itemize}
+ \item the total advancement of both players; and
+ \item the number of pawns which have reached their initial position again.
+\end{itemize}
+
+The improved evaluation function thus takes into account these two features.
+\begin{minted}{Python}
+def evaluate(self, state):
+    l1 = []
+    l2 = []
+    for pawn in [0, 1, 2, 3, 4]:
+        l1.append(state.get_pawn_advancement(self.id, pawn))
+        l2.append(state.get_pawn_advancement(1 - self.id, pawn))
+    l1.sort()
+    l2.sort()
+    return sum(l1[1:]) - sum(l2[1:])
+\end{minted}
+It creates for every player, a list with the advancements of each pawn.
+It sorts these lists and then sums over the four most advanced pawns for each, return the difference between these sums.
 
 \subsection{Contest}
 For the contest agent, we have opted for 
