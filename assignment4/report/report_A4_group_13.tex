@@ -4,12 +4,13 @@
 \usepackage[english]{babel}
 \usepackage{minted}
 \usepackage{booktabs}
-\usepackage{commath}
+%\usepackage{commath}
 \usepackage{float}
 \usepackage{mathtools}
 \usepackage{color}
 \usepackage{amsthm}
 \usepackage{parskip}
+\usepackage{bm}
 
 
 \usepackage[binary-units=true]{siunitx}
@@ -26,17 +27,84 @@
 
 \section{The Bin Packing Problem}
 \begin{enumerate}
-	\item The bin packing problem can be formulated as a local search problem as follows: % TODO
-	\item The initial solution is constructed as % TODO explain
+	\item The bin packing problem can be formulated as a local search problem as follows:
+	\begin{itemize}
+		\item The \emph{problem} is to find a partition of a finite set \(U\) of items of rational size \(0 \le s(u) \le 1\) for each \(u \in U\) into disjoint subsets \(U_1, \ldots, U_k\) such that the sum of the item sizes in each \(U_i\) is no more than 1, and such that \(k\) is as small as possible.
+		
+		This is equivalent to the problem of packing a finite set of items of integer size (\(s(u) \in [0, C]\)) into bins of capacity \(C\), while minimizing the number of bins.
+		\item The \emph{cost function}, which me want to maximize, is
+		\[
+		f(k, \bm{\mathrm{fullness}}) = -\mathrm{Fitness} =  \left(\frac{\sum_{i=1}^{k} \left(\frac{\mathrm{fullness}_i}{C}\right)^2}{k}\right) - 1,
+		\]
+		where \(k\) is the number of bins, \(\bm{\mathrm{fullness}}\) is a vector of size \(k\) containing the total weight of each bin and \(C\) is the capacity of the bins.
+		This is the inverse of the Fitness coefficient, where the sign originates from a desire to have a maximization problem.
+		\item A solution is feasible if every item is in a bin and
+		\[
+		\mathrm{fullness}_i \le C \quad \textnormal{for} \quad i = 1, \ldots, k.
+		\]
+		We call the set of feasible bin packings \(\mathcal{S}\).
+		\item A solution \(\sigma\) is optimal if
+		\[
+		s \in \mathcal{S} \implies f(\sigma) \le f(s).
+		\]
+		Equivalently, one can write the set of optimal solutions as \(\{s \in \mathcal{S} : f(s) = \min_{p \in \mathcal{S}} f(p)\}\).
+	\end{itemize}
+	\item The initial solution is constructed by taking the various items in the order in which they are given, and to try, for each one, to add it to the current bin.
+	If this is possible (i.e., the bin's capacity is not exceeded), then add it and move to the next bin.
+	If not, create a new bin and add the item to that bin, then move to the next item.
+	This is the strategy which was initially implemented in the code template.
 	
+	The successor functions works by generating the two kinds of swap moves, and yielding the resulting states.
+	That is, given an input state, it tries to find all possible item-item and item-blank space swaps which do not violate the feasibility constraints and yields a successor state where the bins have been updated to reflect the change.
+	\item  The results for the three strategies on each of the ten given instances are detailed in Table~\ref{time1}.\footnote{Experiments were run on an Early 2015 MacBook Pro, running macOS Sierra 10.12.6, using a \SI{2.9}{\giga\hertz} Intel Core i5 processor, with \SI{8}{\giga\byte} of \SI{1867}{\mega\hertz} DDR3 RAM and an Intel Iris Graphics 6100 GPU.}
+	When applicable, instances were tested multiple times and the average values were taken.
+	The optimality value is given using the cost function detailed higher up in this document.
+	When the sign is reversed, this becomes the fitness measure defined in the assignment's statement.
 	
-	The successor functions works as % TODO explain
-	\item % TODO
+	\begin{table}[H]
+		\centering
+		\begin{tabular}{c@{\hspace{0.7cm}}ccc|ccc|ccc} 
+			\toprule
+			Inst. & \multicolumn{3}{c}{\py{maxvalue}} & \multicolumn{3}{c}{\py{randomized_maxvalue}} & \multicolumn{3}{c}{\py{random_walk}}  \\
+			\midrule
+			& Time (ms) & Opt. & Steps & Time (ms) & Opt. & Steps & Time (ms) & Opt. & Steps \\
+			\midrule
+			1 & 213 & \(-0.0256572\) & 9 & 214 & \(-0.0487638\) & 13.1 & 401 & \(-0.314751\) & 12.7 \\ 
+			2 & 329 & \(-0.0316317\) & 10 & 242 & \(-0.0316621\) & 32.6 & 430 & \(-0.296054\) & 2.3 \\ 
+			3 & 252 & \(-0.231149\) & 5 & 261 & \(-0.231456\) & 15.6 & 409 & \(-0.291955\) & 4.8 \\ 
+			4 & 251 & \(-0.233704\) & 6 & 260 & \(-0.234356\) & 31.5 & 450 & \(-0.295092\) & 1.6 \\ 
+			5 & 546 & \(-0.247307\) & 2 & 357 & \(-0.247385\) & 2.7 & 386 & \(-0.247858\) & 0 \\ 
+			6 & 183 & \(-0.0278449\) & 6 & 219 & \(-0.0278968\) & 28 & 375 & \(-0.259277\) & 2.2 \\ 
+			7 & 197 & \(-0.0417206\) & 4 & 223 & \(-0.0417037\) & 27.4 & 389 & \(-0.272147\) & 1.3 \\ 
+			8 & 240 & \(-0.0370099\) & 4 & 232 & \(-0.037048\) & 5.7 & 385 & \(-0.267996\) & 2.6 \\ 
+			9 & 177 & \(-0.0143129\) & 5 & 186 & \(-0.0143188\) & 14.2 & 398 & \(-0.252326\) & 0.6 \\ 
+			10 & 237 & \(-0.0432446\) & 5 & 222 & \(-0.0432216\) & 25.3 & 434 & \(-0.2732\) & 1.9 \\
+			\bottomrule
+			\\
+		\end{tabular}
+		\caption{Comparison of execution time, optimal value and number of steps for the three local search strategies.}
+		\label{time1}
+	\end{table}
 	\item \begin{enumerate}
-		\item % TODO
-		\item % TODO
-		\item % TODO
-		\item % TODO
+		\item It is hard to say which strategy is best, since the results for the \py{maxvalue} and \py{randomized_maxvalue} strategies are very similar, with \py{maxvalue} obtaining its optimal value after fewer steps.
+		This is slightly counterintuitive, as one expects that the \py{randomized_maxvalue} strategy would outperform the \py{maxvalue} strategy, which is likely to get stuck in locala maxima.
+		This is probably a byproduct of the low limit on the number of steps.
+		
+		There is however no doubt about the fact that both strategies outperform the \py{random_walk} strategy.
+		\item The \py{maxvalue} strategy is a simple hill-climbing algorithm, and chooses the best neighbour at each step.
+		The other strategies, while less likely to get stuck in local optima, do not necessarily go for the neighbours with the highest value, and thus often end up with worse solutions.
+		\item The \py{maxvalue} strategy focuses entirely on intensification, that is, searching for the neighbour with the highest value, but does not take into account diversification (deviating from optimality in order to avoid getting stuck in local optima).
+		
+		The \py{random_walk} strategy, on the other hand, focuses entirely on diversification, while not paying attention to intensification: the next neighbour is chosen randomly, regardless of its value.
+		
+		Finally, the \py{randomized_maxvalue} strategy tries to find a balance between looking at the values of the neighbours (by taking the best five) and diversifying between those neighbours (by randomizing its choice).
+		\item Since the \py{maxvalue} strategy does not diversify its choices, it has little to no chance of escaping local maxima.
+		Unless the best neighbour of the local maximum has another neighbour which has an even higher value, the algorithm is going to start jumping back and forth between the maximum and its best neighbour, until the step limit is reached.
+		
+		On the other hand, the \py{random_walk} strategy is more likely to escape local maxima since it has a nonzero probability of ``randomly walking'' down the hill it climbed, finding another hill to climb.
+		
+		Finally, the \py{randomized_maxvalue} strategy is somewhere in between.
+		It has a possibility to escape local maxima, given that the local maxima are not too isolated (so that the random part of the algorithm has a chance of jumping to a new hill).
 	\end{enumerate}
 \end{enumerate}
 
