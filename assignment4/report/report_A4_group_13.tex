@@ -111,13 +111,87 @@
 \section{Propositional Logic}
 \subsection{Models and Logical Connectives}
 \begin{enumerate}
-	\item The first sentence has ten valid interpretations.
+	\item The first sentence's truth table is given in Table~\ref{tab:tt1}.
+	Since it does not appear in the expression, we omit \(D\).
+	\begin{table}[H]
+		\centering
+		\(
+		\begin{array}{ccc@{\quad}ccc}
+		\toprule
+		A & B & C & \lnot A  \lor C & \lnot B \lor C & (\lnot A  \lor C) \land (\lnot B \lor C)\\
+		\midrule
+		0 & 0 & 0 & 1 & 1 & 1 \\
+		0 & 0 & 1 & 1 & 1 & 1 \\
+		0 & 1 & 0 & 1 & 0 & 0 \\
+		0 & 1 & 1 & 1 & 1 & 1 \\
+		1 & 0 & 0 & 0 & 1 & 0 \\
+		1 & 0 & 1 & 1 & 1 & 1 \\
+		1 & 1 & 0 & 0 & 0 & 0 \\
+		1 & 1 & 1 & 1 & 1 & 1 \\
+		\bottomrule\\
+		\end{array}
+		\)
+	\caption{Truth table for \((\lnot A  \lor C) \land (\lnot B \lor C)\).}
+	\label{tab:tt1}
+	\end{table}
+	As one can see, there are ten valid interpretations (five for each value of \(D\)).
 	
+	The second sentence's truth table is given in Table~\ref{tab:tt2}.
+	Since it does not appear in the expression, we omit \(D\).
+	\begin{table}[H]
+		\centering
+		\(
+		\begin{array}{ccc@{\quad}ccc}
+		\toprule
+		A & B & C & C \implies \lnot A & \lnot(B \lor C) & (C \implies \lnot A) \land \lnot(B \lor C)\\
+		\midrule
+		0 & 0 & 0 & 1 & 1 & 1 \\
+		0 & 0 & 1 & 1 & 0 & 0 \\
+		0 & 1 & 0 & 1 & 0 & 0 \\
+		0 & 1 & 1 & 1 & 0 & 0 \\
+		1 & 0 & 0 & 1 & 1 & 1 \\
+		1 & 0 & 1 & 0 & 0 & 0 \\
+		1 & 1 & 0 & 1 & 0 & 0 \\
+		1 & 1 & 1 & 0 & 0 & 0 \\
+		\bottomrule\\
+		\end{array}
+		\)
+		\caption{Truth table for \((C \implies \lnot A) \land \lnot(B \lor C)\).}
+		\label{tab:tt2}
+	\end{table}
+	As one can see, there are four valid interpretations (two for each value of \(D\)).
 	
-	The second sentence has four valid interpretations.
-	
-	
-	The third sentence has one valid interpretation.
+	The third sentence's truth table is given in Table~\ref{tab:tt3}.
+	\begin{table}[H]
+		\centering
+		\(
+		\begin{array}{cccc@{\quad}cccc}
+		\toprule
+		A & B & C & D & \lnot A \lor B & \lnot(B \implies \lnot C) & \lnot(\lnot D \implies A) & (\lnot A \lor B) \land \lnot(B \implies \lnot C) \land \lnot(\lnot D \implies A)\\
+		\midrule
+		0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 \\
+		0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 \\
+		0 & 0 & 1 & 0 & 0 & 0 & 1 & 0 \\
+		0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 \\
+		0 & 1 & 0 & 0 & 1 & 0 & 1 & 0 \\
+		0 & 1 & 0 & 1 & 1 & 0 & 0 & 0 \\
+		0 & 1 & 1 & 0 & 1 & 1 & 1 & 1 \\
+		0 & 1 & 1 & 1 & 1 & 1 & 0 & 0 \\
+		1 & 0 & 0 & 0 & 1 & 0 & 0 & 0 \\
+		1 & 0 & 0 & 1 & 1 & 0 & 0 & 0 \\
+		1 & 0 & 1 & 0 & 1 & 0 & 0 & 0 \\
+		1 & 0 & 1 & 1 & 1 & 0 & 0 & 0 \\
+		1 & 1 & 0 & 0 & 1 & 0 & 0 & 0 \\
+		1 & 1 & 0 & 1 & 1 & 0 & 0 & 0 \\
+		1 & 1 & 1 & 0 & 1 & 1 & 0 & 0 \\
+		1 & 1 & 1 & 1 & 1 & 1 & 0 & 0 \\
+		\bottomrule\\
+		\end{array}
+		\)
+		\caption{Truth table for \((\lnot A \lor B) \land \lnot(B \implies \lnot C) \land \lnot(\lnot D \implies A)\).}
+		\label{tab:tt3}
+	\end{table}
+	As one can see, there is only one valid interpretation.
 \end{enumerate}
 
 \subsection{Color Grid Problem}
