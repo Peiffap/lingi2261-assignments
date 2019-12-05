@@ -2,16 +2,16 @@
 Class used to represent a clause in CNF for the color grid problem.
 Variable X_i_j_k is true iff cell at position (i,j) has color k.
 
-For example, to create a clause:
+For example, for a problem of size 3, to create the clause:
 
-X_0_1_1 or ~X_1_2 or X_3_3_2
+X_0_0_0 or ~X_1_2_2 or X_2_2_0
 
-you can do:
+you must do:
 
-clause = Clause(4)
-clause.add_positive(0, 1, 1)
+clause = Clause(3)
+clause.add_positive(0, 0, 0)
 clause.add_negative(1, 2, 2)
-clause.add_positive(3, 3, 2)
+clause.add_positive(2, 2, 0)
 
 """
 
@@ -30,18 +30,15 @@ class Clause:
             raise ValueError("Indices : row_ind =", row_ind, "column_ind =", column_ind, "color_ind =", color_ind, "is incorrect")
 
     def str_from_index(self, index):
+        tmp_index = index
         if index >= 0:
             index -= 1
         else:
-            index += 1
+            index = -index - 1
         color_ind = index % self.n_colors
-        # if color_ind == 0:
-        #     color_ind = self.n_colors - 1
-        # else:
-        #     color_ind -= 1
         row_ind = index // self.n_colors // self.n_columns
         column_ind = index // self.n_colors % self.n_columns
-        if index < 0:
+        if tmp_index < 0:
             return '~{0}_{1}_{2}_{3}'.format(self.varname, row_ind, column_ind, color_ind)
         return '{0}_{1}_{2}_{3}'.format(self.varname, row_ind, column_ind, color_ind)
 
@@ -60,7 +57,7 @@ class Clause:
 
 if __name__ == '__main__':
     clause = Clause(3)
-    clause.add_positive(1, 1, 1)
+    clause.add_positive(0, 0, 0)
     clause.add_negative(1, 2, 2)
     clause.add_positive(2, 2, 0)
     print(clause)

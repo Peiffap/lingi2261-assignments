@@ -32,7 +32,7 @@
 		\item The \emph{problem} is to find a partition of a finite set \(U\) of items of rational size \(0 \le s(u) \le 1\) for each \(u \in U\) into disjoint subsets \(U_1, \ldots, U_k\) such that the sum of the item sizes in each \(U_i\) is no more than 1, and such that \(k\) is as small as possible.
 		
 		This is equivalent to the problem of packing a finite set of items of integer size (\(s(u) \in [0, C]\)) into bins of capacity \(C\), while minimizing the number of bins.
-		\item The \emph{cost function}, which me want to maximize, is
+		\item The \emph{cost function}, which we want to maximize, is
 		\[
 		f(k, \bm{\mathrm{fullness}}) = -\mathrm{Fitness} =  \left(\frac{\sum_{i=1}^{k} \left(\frac{\mathrm{fullness}_i}{C}\right)^2}{k}\right) - 1,
 		\]
@@ -45,9 +45,9 @@
 		We call the set of feasible bin packings \(\mathcal{S}\).
 		\item A solution \(\sigma\) is optimal if
 		\[
-		s \in \mathcal{S} \implies f(\sigma) \le f(s).
+		s \in \mathcal{S} \implies f(\sigma) \ge f(s).
 		\]
-		Equivalently, one can write the set of optimal solutions as \(\{s \in \mathcal{S} : f(s) = \min_{p \in \mathcal{S}} f(p)\}\).
+		Equivalently, one can write the set of optimal solutions as \(\{s \in \mathcal{S} : f(s) = \max_{p \in \mathcal{S}} f(p)\}\).
 	\end{itemize}
 	\item The initial solution is constructed by taking the various items in the order in which they are given, and to try, for each one, to add it to the current bin.
 	If this is possible (i.e., the bin's capacity is not exceeded), then add it and move to the next bin.
@@ -56,6 +56,8 @@
 	
 	The successor functions works by generating the two kinds of swap moves, and yielding the resulting states.
 	That is, given an input state, it tries to find all possible item-item and item-blank space swaps which do not violate the feasibility constraints and yields a successor state where the bins have been updated to reflect the change.
+	
+	Both functions have been submitted and verified on INGInious, obtaining a score of 15/15.
 	\item  The results for the three strategies on each of the ten given instances are detailed in Table~\ref{time1}.\footnote{Experiments were run on an Early 2015 MacBook Pro, running macOS Sierra 10.12.6, using a \SI{2.9}{\giga\hertz} Intel Core i5 processor, with \SI{8}{\giga\byte} of \SI{1867}{\mega\hertz} DDR3 RAM and an Intel Iris Graphics 6100 GPU.}
 	When applicable, instances were tested multiple times and the average values were taken.
 	The optimality value is given using the cost function detailed higher up in this document.
@@ -111,6 +113,7 @@
 \section{Propositional Logic}
 \subsection{Models and Logical Connectives}
 \begin{enumerate}
+	% TODO perhaps we should use a slightly less exhaustive algorithm to answer this question.
 	\item The first sentence's truth table is given in Table~\ref{tab:tt1}.
 	Since it does not appear in the expression, we omit \(D\).
 	\begin{table}[H]
@@ -196,9 +199,56 @@
 
 \subsection{Color Grid Problem}
 \begin{enumerate}
-	\item % TODO
-	\item % TODO
-	\item % TODO
+	\item Using propositional logic, one can express the three types of constraints fairly easily.
+	We write \(n\) to denote the number of rows/columns/colors.
+	
+	To express the fact that a color can only appear once in a given row and column, we write
+	\[
+	C_{i, j, k} \implies \Bigg(\bigwedge_{0 \le \alpha < n, \alpha \ne j} \lnot C_{i, \alpha, k}\Bigg) \land \Bigg(\bigwedge_{0 \le \alpha < n, \alpha \ne i} \lnot C_{\alpha, j, k}\Bigg).
+	\]
+	
+	For the diagonal constraints, one should notice that diagonals can be defined by the properties of the indices of the elements contained in them.
+	The first type, which we call ``constant-difference'' diagonals, has the property that the difference between the elements of the diagonal is a constant value.
+	The second type, which we call ``constant-sum'' diagonals, has the property that the sum of the elements of the diagonal is a constant value.
+	
+	To express that a color can only appear once in a given constant-difference diagonal, we write
+	\[
+	C_{i, j, k} \implies \bigwedge_{0 \le i+\alpha, j+\alpha < n, \alpha \ne 0} \lnot C_{i+\alpha, j+\alpha, k} \land \bigwedge_{0 \le i-\alpha, j-\alpha < n, \alpha 
+	\ne 0} \lnot C_{i-\alpha, j-\alpha, k}.
+	\]
+	
+	To express that a color can only appear once in a given constant-sum diagonal, we write
+	\[
+	C_{i, j, k} \implies \bigwedge_{0 \le i+\alpha, j-\alpha < n, \alpha \ne 0} \lnot C_{i+\alpha, j-\alpha, k} \land \bigwedge_{0 \le i-\alpha, j+\alpha < n, \alpha \ne 0} \lnot C_{i-\alpha, j+\alpha, k}.
+	\]
+	
+	One must also assert that a given square on the grid can only have a single color:
+	\[
+	C_{i, j, k} \implies \bigwedge_{0 \le \alpha < n, \alpha \ne k} \lnot C_{i, j, \alpha},
+	\]
+	and that each color must appear once in every row and column:
+	\[
+	\bigwedge_{\substack{0 \le j < n \\ 0 \le k < n}} \Bigg(\bigvee_{0 \le i < n} C_{i, j, k}\Bigg) \land \bigwedge_{\substack{0 \le i < n \\ 0 \le k < n}} \Bigg(\bigvee_{0 \le j < n} C_{i, j, k}\Bigg).
+	\]
+	
+	All of these constraints must be repeated for all possible values of \((i, j, k)\).
+	
+	Additionally, all input values must be asserted as well	\(\bigwedge_{(i, j, k) \in \textnormal{Inputs}} C_{i, j, k}\).
+	\item To put the constraints given in the previous part into conjunctive normal form, one proceeds as follows:
+	\begin{align*}
+	&\bigwedge_{\substack{0 \le i < n \\ 0 \le j < n \\ 0 \le k < n}} \left(C_{i, j, k} \implies {\underbrace{\bigwedge_{0 \le \alpha < n, \alpha \ne j} \lnot C_{i, \alpha, k}}_{\textnormal{row}}} \land {\underbrace{\bigwedge_{0 \le \alpha < n, \alpha \ne i} \lnot C_{\alpha, j, k}}_{\textnormal{column}}}\right. \\
+	&\qquad \qquad \! \! {} \land {\underbrace{\bigwedge_{0 \le i+\alpha, j+\alpha < n, \alpha \ne 0} \lnot C_{i+\alpha, j+\alpha, k} \land \bigwedge_{0 \le i-\alpha, j-\alpha < n, \alpha \ne 0} \lnot C_{i-\alpha, j-\alpha, k}}_{\textnormal{constant-difference diagonal}}} \\
+	&\left. \qquad \qquad \! \! {} \land {\underbrace{\bigwedge_{0 \le i+\alpha, j-\alpha < n, \alpha \ne 0} \lnot C_{i+\alpha, j-\alpha, k} \land \bigwedge_{0 \le i-\alpha, j+\alpha < n, \alpha \ne 0} \lnot C_{i-\alpha, j+\alpha, k}}_{\textnormal{constant sum diagonal}}} \land {\underbrace{\bigwedge_{0 \le \alpha < n, \alpha \ne k} \lnot C_{i, j, \alpha}}_{\textnormal{color unicity}}} \right) \\
+	&\qquad \qquad \! \! {}  \land {\underbrace{\bigwedge_{\substack{0 \le j < n \\ 0 \le k < n}} \Bigg(\bigvee_{0 \le i < n} C_{i, j, k}\Bigg) \land \bigwedge_{\substack{0 \le i < n \\ 0 \le k < n}} \Bigg(\bigvee_{0 \le j < n} C_{i, j, k}\Bigg)}_{\textnormal{color existence}}} \land {\underbrace{\bigwedge_{(i, j, k) \in \textnormal{Inputs}} C_{i, j, k} \vphantom{\bigwedge_{\substack{0 \le j < n \\ 0 \le k < n}}}}_{\textnormal{inputs}}} \\
+	=&\bigwedge_{\substack{0 \le i < n \\ 0 \le j < n \\ 0 \le k < n}} \left({\underbrace{\bigwedge_{0 \le \alpha < n, \alpha \ne j} \Big(\lnot C_{i, j, k} \lor \lnot C_{i, \alpha, k} \Big)}_{\textnormal{row}}} \land {\underbrace{\bigwedge_{0 \le \alpha < n, \alpha \ne i} \Big(\lnot C_{i, j, k} \lor \lnot C_{\alpha, j, k}\Big)}_{\textnormal{column}}} \right.\\
+	&\qquad \qquad \! \! {}  \land {\underbrace{\bigwedge_{0 \le i+\alpha, j+\alpha < n, \alpha \ne 0} \Big( \lnot C_{i, j, k} \lor \lnot C_{i + \alpha, j+\alpha, k}\Big) \land \bigwedge_{0 \le i-\alpha, j-\alpha < n, \alpha \ne 0} \Big( \lnot C_{i, j, k} \lor \lnot C_{i-\alpha, j-\alpha, k} \Big)}_{\textnormal{constant-difference diagonal}}}\\
+	&\qquad \qquad \! \! {}  \land {\underbrace{\bigwedge_{0 \le i+\alpha, j-\alpha < n, \alpha \ne 0} \Big( \lnot C_{i, j, k} \lor \lnot C_{i-\alpha, j+\alpha, k} \Big) \land \bigwedge_{0 \le i-\alpha, j+\alpha < n, \alpha \ne 0} \Big( \lnot C_{i, j, k} \lor \lnot C_{i-\alpha, j+\alpha, k} \Big)}_{\textnormal{constant sum diagonal}}}\\
+	&\left. \qquad \qquad \! \! {} \land {\underbrace{\bigwedge_{0 \le \alpha < n, \alpha \ne k} \Big(\lnot C_{i, j, k} \lor \lnot C_{i, j, \alpha} \Big)\vphantom{\bigwedge_{\substack{0 \le j < n \\ 0 \le k < n}}}}_{\textnormal{color unicity}}} \right) \land {\underbrace{\bigwedge_{\substack{0 \le j < n \\ 0 \le k < n}} \Bigg(\bigvee_{0 \le i < n} C_{i, j, k}\Bigg) \land \bigwedge_{\substack{0 \le i < n \\ 0 \le k < n}} \Bigg(\bigvee_{0 \le j < n} C_{i, j, k}\Bigg)}_{\textnormal{color existence}}} \\
+	&\qquad \qquad \! \! {} \land {\underbrace{\bigwedge_{(i, j, k) \in \textnormal{Inputs}} C_{i, j, k}}_{\textnormal{inputs}}},
+	\end{align*}
+	where the last line is obtained using the distributivity and implication properties.
+	As required, the final form is a conjunction of disjunctions of literals, i.e., a conjunctive normal form.
+	\item The \py{cgp_solver.py} program has been submitted and verified on INGInious, obtaining a score of 10/10.
 \end{enumerate}
 
 \end{document}

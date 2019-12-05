@@ -61,7 +61,6 @@ if __name__ == "__main__":
     expression = get_expression(size, points)
     nb_vars = n_rows * n_columns * n_colors
     solution = minisat.minisat(nb_vars, [clause.minisat_str() for clause in expression], './minisatMac')
-
     if solution is None:
         print("The problem is unfeasible")
         exit(0)
@@ -72,7 +71,7 @@ if __name__ == "__main__":
         if s % size == 0:
             tmp.append(size-1)
         else:
-         tmp.append(s % size - 1)
+            tmp.append(s % size - 1)
         i += 1
         if len(tmp) == size:
             grid.append(tmp)
