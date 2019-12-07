@@ -223,7 +223,7 @@
 	C_{i, j, k} \implies \bigwedge_{0 \le i+\alpha, j-\alpha < n, \alpha \ne 0} \lnot C_{i+\alpha, j-\alpha, k}.
 	\]
 	
-	One must also assert that for a given square, at least one colour must be used:
+	One must also assert that for a given square, at least one color must be used:
 	\[
 	\bigwedge_{\substack{0 \le i < n \\ 0 \le j < n}} \Bigg(\bigvee_{0 \le k < n} C_{i, j, k}\Bigg).
 	\]
@@ -234,6 +234,8 @@
 	\[
 	\bigwedge_{(i, j, k) \in \textnormal{Inputs}} C_{i, j, k}.
 	\]
+	
+	Since the number of rows, columns and colors is identical, it is worth noting that the unicity of the color for each case is automatically verified by the row, column and color conditions stated above. Indeed, it is impossible for a cell to have 2 different colors if all the $n$ cells in a row (or column) need to pick a different color among the $n$ colors available.
 	\item To put the constraints given in the previous part into conjunctive normal form, one proceeds as follows:
 	\begin{align*}
 	&\bigwedge_{\substack{0 \le i < n \\ 0 \le j < n \\ 0 \le k < n}} \left(C_{i, j, k} \implies {\underbrace{\bigwedge_{0 \le \alpha < n, \alpha \ne j} \lnot C_{i, \alpha, k}}_{\textnormal{row}}} \land {\underbrace{\bigwedge_{0 \le \alpha < n, \alpha \ne i} \lnot C_{\alpha, j, k}}_{\textnormal{column}}}\right. \\
