@@ -215,38 +215,33 @@
 	
 	To express that a color can only appear once in a given constant-difference diagonal, we write
 	\[
-	C_{i, j, k} \implies \bigwedge_{0 \le i+\alpha, j+\alpha < n, \alpha \ne 0} \lnot C_{i+\alpha, j+\alpha, k} \land \bigwedge_{0 \le i-\alpha, j-\alpha < n, \alpha 
-	\ne 0} \lnot C_{i-\alpha, j-\alpha, k}.
+	C_{i, j, k} \implies \bigwedge_{0 \le i+\alpha, j+\alpha < n, \alpha \ne 0} \lnot C_{i+\alpha, j+\alpha, k}.
 	\]
 	
 	To express that a color can only appear once in a given constant-sum diagonal, we write
 	\[
-	C_{i, j, k} \implies \bigwedge_{0 \le i+\alpha, j-\alpha < n, \alpha \ne 0} \lnot C_{i+\alpha, j-\alpha, k} \land \bigwedge_{0 \le i-\alpha, j+\alpha < n, \alpha \ne 0} \lnot C_{i-\alpha, j+\alpha, k}.
+	C_{i, j, k} \implies \bigwedge_{0 \le i+\alpha, j-\alpha < n, \alpha \ne 0} \lnot C_{i+\alpha, j-\alpha, k}.
 	\]
 	
-	One must also assert that a given square on the grid can only have a single color:
-	\[
-	C_{i, j, k} \implies \bigwedge_{0 \le \alpha < n, \alpha \ne k} \lnot C_{i, j, \alpha},
-	\]
-	and that each color must appear once in every row and column:
+	One must also assert that each color must appear once in every row and column:
 	\[
 	\bigwedge_{\substack{0 \le j < n \\ 0 \le k < n}} \Bigg(\bigvee_{0 \le i < n} C_{i, j, k}\Bigg) \land \bigwedge_{\substack{0 \le i < n \\ 0 \le k < n}} \Bigg(\bigvee_{0 \le j < n} C_{i, j, k}\Bigg).
 	\]
 	
 	All of these constraints must be repeated for all possible values of \((i, j, k)\).
 	
-	Additionally, all input values must be asserted as well	\(\bigwedge_{(i, j, k) \in \textnormal{Inputs}} C_{i, j, k}\).
+	Additionally, all input values must be asserted as well:
+	\[
+	\bigwedge_{(i, j, k) \in \textnormal{Inputs}} C_{i, j, k}.
+	\]
 	\item To put the constraints given in the previous part into conjunctive normal form, one proceeds as follows:
 	\begin{align*}
 	&\bigwedge_{\substack{0 \le i < n \\ 0 \le j < n \\ 0 \le k < n}} \left(C_{i, j, k} \implies {\underbrace{\bigwedge_{0 \le \alpha < n, \alpha \ne j} \lnot C_{i, \alpha, k}}_{\textnormal{row}}} \land {\underbrace{\bigwedge_{0 \le \alpha < n, \alpha \ne i} \lnot C_{\alpha, j, k}}_{\textnormal{column}}}\right. \\
-	&\qquad \qquad \! \! {} \land {\underbrace{\bigwedge_{0 \le i+\alpha, j+\alpha < n, \alpha \ne 0} \lnot C_{i+\alpha, j+\alpha, k} \land \bigwedge_{0 \le i-\alpha, j-\alpha < n, \alpha \ne 0} \lnot C_{i-\alpha, j-\alpha, k}}_{\textnormal{constant-difference diagonal}}} \\
-	&\left. \qquad \qquad \! \! {} \land {\underbrace{\bigwedge_{0 \le i+\alpha, j-\alpha < n, \alpha \ne 0} \lnot C_{i+\alpha, j-\alpha, k} \land \bigwedge_{0 \le i-\alpha, j+\alpha < n, \alpha \ne 0} \lnot C_{i-\alpha, j+\alpha, k}}_{\textnormal{constant-sum diagonal}}} \land {\underbrace{\bigwedge_{0 \le \alpha < n, \alpha \ne k} \lnot C_{i, j, \alpha}}_{\textnormal{color unicity}}} \right) \\
-	&\qquad \qquad \! \! {}  \land {\underbrace{\bigwedge_{\substack{0 \le j < n \\ 0 \le k < n}} \Bigg(\bigvee_{0 \le i < n} C_{i, j, k}\Bigg) \land \bigwedge_{\substack{0 \le i < n \\ 0 \le k < n}} \Bigg(\bigvee_{0 \le j < n} C_{i, j, k}\Bigg)}_{\textnormal{color existence}}} \land {\underbrace{\bigwedge_{(i, j, k) \in \textnormal{Inputs}} C_{i, j, k} \vphantom{\bigwedge_{\substack{0 \le j < n \\ 0 \le k < n}}}}_{\textnormal{inputs}}} \\
+	&\left. \qquad \qquad \! \! {} \land {\underbrace{\bigwedge_{0 \le i+\alpha, j+\alpha < n, \alpha \ne 0} \lnot C_{i+\alpha, j+\alpha, k}}_{\textnormal{constant-difference diagonal}}}  \qquad \qquad \! \! {} \land {\underbrace{\bigwedge_{0 \le i+\alpha, j-\alpha < n, \alpha \ne 0} \lnot C_{i+\alpha, j-\alpha, k}}_{\textnormal{constant-sum diagonal}}}\right) \\
+	&\qquad \qquad \! \! {}  \land {\underbrace{\bigwedge_{\substack{0 \le j < n \\ 0 \le k < n}} \Bigg(\bigvee_{0 \le i < n} C_{i, j, k}\Bigg) \land \bigwedge_{\substack{0 \le i < n \\ 0 \le k < n}} \Bigg(\bigvee_{0 \le j < n} C_{i, j, k}\Bigg)}_{\textnormal{color}}} \land {\underbrace{\bigwedge_{(i, j, k) \in \textnormal{Inputs}} C_{i, j, k} \vphantom{\bigwedge_{\substack{0 \le j < n \\ 0 \le k < n}}}}_{\textnormal{inputs}}} \\
 	=&\bigwedge_{\substack{0 \le i < n \\ 0 \le j < n \\ 0 \le k < n}} \left({\underbrace{\bigwedge_{0 \le \alpha < n, \alpha \ne j} \Big(\lnot C_{i, j, k} \lor \lnot C_{i, \alpha, k} \Big)}_{\textnormal{row}}} \land {\underbrace{\bigwedge_{0 \le \alpha < n, \alpha \ne i} \Big(\lnot C_{i, j, k} \lor \lnot C_{\alpha, j, k}\Big)}_{\textnormal{column}}} \right.\\
-	&\qquad \qquad \! \! {}  \land {\underbrace{\bigwedge_{0 \le i+\alpha, j+\alpha < n, \alpha \ne 0} \Big( \lnot C_{i, j, k} \lor \lnot C_{i + \alpha, j+\alpha, k}\Big) \land \bigwedge_{0 \le i-\alpha, j-\alpha < n, \alpha \ne 0} \Big( \lnot C_{i, j, k} \lor \lnot C_{i-\alpha, j-\alpha, k} \Big)}_{\textnormal{constant-difference diagonal}}}\\
-	&\qquad \qquad \! \! {}  \land {\underbrace{\bigwedge_{0 \le i+\alpha, j-\alpha < n, \alpha \ne 0} \Big( \lnot C_{i, j, k} \lor \lnot C_{i-\alpha, j+\alpha, k} \Big) \land \bigwedge_{0 \le i-\alpha, j+\alpha < n, \alpha \ne 0} \Big( \lnot C_{i, j, k} \lor \lnot C_{i-\alpha, j+\alpha, k} \Big)}_{\textnormal{constant-sum diagonal}}}\\
-	&\left. \qquad \qquad \! \! {} \land {\underbrace{\bigwedge_{0 \le \alpha < n, \alpha \ne k} \Big(\lnot C_{i, j, k} \lor \lnot C_{i, j, \alpha} \Big)\vphantom{\bigwedge_{\substack{0 \le j < n \\ 0 \le k < n}}}}_{\textnormal{color unicity}}} \right) \land {\underbrace{\bigwedge_{\substack{0 \le j < n \\ 0 \le k < n}} \Bigg(\bigvee_{0 \le i < n} C_{i, j, k}\Bigg) \land \bigwedge_{\substack{0 \le i < n \\ 0 \le k < n}} \Bigg(\bigvee_{0 \le j < n} C_{i, j, k}\Bigg)}_{\textnormal{color existence}}} \\
-	&\qquad \qquad \! \! {} \land {\underbrace{\bigwedge_{(i, j, k) \in \textnormal{Inputs}} C_{i, j, k}}_{\textnormal{inputs}}},
+	&\left. \qquad \qquad \! \! {}  \land {\underbrace{\bigwedge_{0 \le i+\alpha, j+\alpha < n, \alpha \ne 0} \Big( \lnot C_{i, j, k} \lor \lnot C_{i + \alpha, j+\alpha, k}\Big)}_{\textnormal{constant-difference diagonal}}} \land {\underbrace{\bigwedge_{0 \le i+\alpha, j-\alpha < n, \alpha \ne 0} \Big( \lnot C_{i, j, k} \lor \lnot C_{i-\alpha, j+\alpha, k} \Big)}_{\textnormal{constant-sum diagonal}}}\right)\\
+	&\qquad \qquad \! \! {} \land {\underbrace{\bigwedge_{\substack{0 \le j < n \\ 0 \le k < n}} \Bigg(\bigvee_{0 \le i < n} C_{i, j, k}\Bigg) \land \bigwedge_{\substack{0 \le i < n \\ 0 \le k < n}} \Bigg(\bigvee_{0 \le j < n} C_{i, j, k}\Bigg)}_{\textnormal{color}}} \land {\underbrace{\bigwedge_{(i, j, k) \in \textnormal{Inputs}} C_{i, j, k} \vphantom{\bigwedge_{\substack{0 \le j < n \\ 0 \le k < n}}}}_{\textnormal{inputs}}},
 	\end{align*}
 	where the last line is obtained using the distributivity and implication properties.
 	As required, the final form is a conjunction of disjunctions of literals, i.e., a conjunctive normal form.

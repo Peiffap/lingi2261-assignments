@@ -21,13 +21,13 @@ def get_expression(size, points=None):
     for i in range(size):
         for j in range(size):
             # Color existence constraint.
+            clause7 = Clause(size)
             clause8 = Clause(size)
-            clause9 = Clause(size)
             for k in range(size):
-                clause8.add_positive(i, j, k)
-                clause9.add_positive(j, i, k)
+                clause7.add_positive(i, j, k)
+                clause8.add_positive(j, i, k)
+                expression.append(clause7)
                 expression.append(clause8)
-                expression.append(clause9)
                 for alpha in range(size):
                     if alpha != j:
                         # Row constraint.
@@ -65,12 +65,6 @@ def get_expression(size, points=None):
                         clause6.add_negative(i, j, k)
                         clause6.add_negative(i-alpha, j+alpha, k)
                         expression.append(clause6)
-                    if alpha != k:
-                        # Color unicity constraint.
-                        clause7 = Clause(size)
-                        clause7.add_negative(i, j, k)
-                        clause7.add_negative(i, j, alpha)
-                        expression.append(clause7)
                         
     if points is not None:
         # Inputs.
