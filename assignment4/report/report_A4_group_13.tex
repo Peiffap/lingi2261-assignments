@@ -32,12 +32,14 @@
 		\item The \emph{problem} is to find a partition of a finite set \(U\) of items of rational size \(0 \le s(u) \le 1\) for each \(u \in U\) into disjoint subsets \(U_1, \ldots, U_k\) such that the sum of the item sizes in each \(U_i\) is no more than 1, and such that \(k\) is as small as possible.
 		
 		This is equivalent to the problem of packing a finite set of items of integer size (\(s(u) \in [0, C]\)) into bins of capacity \(C\), while minimizing the number of bins.
+		
+		A state is represented by a list of bins, each containing the indexes of the blocks inside this bin.
 		\item The \emph{cost function}, which we want to maximize, is
 		\[
 		f(k, \bm{\mathrm{fullness}}) = -\mathrm{Fitness} =  \left(\frac{\sum_{i=1}^{k} \left(\frac{\mathrm{fullness}_i}{C}\right)^2}{k}\right) - 1,
 		\]
 		where \(k\) is the number of bins, \(\bm{\mathrm{fullness}}\) is a vector of size \(k\) containing the total weight of each bin and \(C\) is the capacity of the bins.
-		This is the inverse of the Fitness coefficient, where the sign originates from a desire to have a maximization problem.
+		This is the opposite of the Fitness coefficient, where the sign originates from a desire to have a maximization problem.
 		\item A solution is feasible if every item is in a bin and
 		\[
 		\mathrm{fullness}_i \le C \quad \textnormal{for} \quad i = 1, \ldots, k.
@@ -89,7 +91,7 @@
 	\end{table}
 	\item \begin{enumerate}
 		\item It is hard to say which strategy is best, since the results for the \py{maxvalue} and \py{randomized_maxvalue} strategies are very similar, with \py{maxvalue} obtaining its optimal value after fewer steps.
-		This is slightly counterintuitive, as one expects that the \py{randomized_maxvalue} strategy would outperform the \py{maxvalue} strategy, which is likely to get stuck in locala maxima.
+		This is slightly counterintuitive, as one expects that the \py{randomized_maxvalue} strategy would outperform the \py{maxvalue} strategy, which is likely to get stuck in local maxima.
 		This is probably a byproduct of the low limit on the number of steps.
 		
 		There is however no doubt about the fact that both strategies outperform the \py{random_walk} strategy.
@@ -172,18 +174,18 @@
 		\toprule
 		A & B & C & D & \lnot A \lor B & \lnot(B \implies \lnot C) & \lnot(\lnot D \implies A) & (\lnot A \lor B) \land \lnot(B \implies \lnot C) \land \lnot(\lnot D \implies A)\\
 		\midrule
-		0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 \\
-		0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 \\
-		0 & 0 & 1 & 0 & 0 & 0 & 1 & 0 \\
-		0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 \\
+		0 & 0 & 0 & 0 & 1 & 0 & 1 & 0 \\
+		0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 \\
+		0 & 0 & 1 & 0 & 1 & 0 & 1 & 0 \\
+		0 & 0 & 1 & 1 & 1 & 0 & 0 & 0 \\
 		0 & 1 & 0 & 0 & 1 & 0 & 1 & 0 \\
 		0 & 1 & 0 & 1 & 1 & 0 & 0 & 0 \\
 		0 & 1 & 1 & 0 & 1 & 1 & 1 & 1 \\
 		0 & 1 & 1 & 1 & 1 & 1 & 0 & 0 \\
-		1 & 0 & 0 & 0 & 1 & 0 & 0 & 0 \\
-		1 & 0 & 0 & 1 & 1 & 0 & 0 & 0 \\
-		1 & 0 & 1 & 0 & 1 & 0 & 0 & 0 \\
-		1 & 0 & 1 & 1 & 1 & 0 & 0 & 0 \\
+		1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+		1 & 0 & 0 & 1 & 0 & 0 & 0 & 0 \\
+		1 & 0 & 1 & 0 & 0 & 0 & 0 & 0 \\
+		1 & 0 & 1 & 1 & 0 & 0 & 0 & 0 \\
 		1 & 1 & 0 & 0 & 1 & 0 & 0 & 0 \\
 		1 & 1 & 0 & 1 & 1 & 0 & 0 & 0 \\
 		1 & 1 & 1 & 0 & 1 & 1 & 0 & 0 \\
