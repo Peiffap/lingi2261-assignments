@@ -7,6 +7,7 @@ import time
 from search import *
 import numpy as np
 
+# This code doesn't work, needs fixing.
 
 #################
 # Problem class #
